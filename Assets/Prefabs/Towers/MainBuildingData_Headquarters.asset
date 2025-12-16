@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a672b633b5588446b617b13930b2285, type: 3}
+  m_Name: MainBuildingData_Headquarters
+  m_EditorClassIdentifier: 
+  buildingName: "\u0413\u043B\u0430\u0432\u043D\u044B\u0439 \u0448\u0442\u0430\u0431"
+  description: 
+  prefab: {fileID: 2625982372206836141, guid: 3ccf50723b9aeff42bdde0e38aa27d83, type: 3}
+  icon: {fileID: 0}
+  gridSize: {x: 5, y: 5}
+  baseCost: 0
+  costType: 0
+  hasProgressiveCost: 0
+  isUnique: 1
+  maxCount: 1
+  previewColor: {r: 0, g: 1, b: 0, a: 0.5}
+  initialWarmleaf: 0
+  initialThunderite: 0
+  initialMirallite: 0
+  resourceStorageCapacity: 2147483647
+  maxColonistsForTransport: 5
+  transportSpeedMultiplier: 1

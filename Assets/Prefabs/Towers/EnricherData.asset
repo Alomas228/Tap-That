@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b451fac4ccdf7e94080222d39d72a283, type: 3}
+  m_Name: EnricherData
+  m_EditorClassIdentifier: 
+  buildingName: "\u041E\u0431\u043E\u0433\u0430\u0442\u0438\u0442\u0435\u043B\u044C"
+  description: 
+  prefab: {fileID: 221828212312228870, guid: 5be94ed6177a70342991527d97a6997f, type: 3}
+  icon: {fileID: 0}
+  gridSize: {x: 6, y: 4}
+  baseCost: 1
+  costType: 0
+  hasProgressiveCost: 0
+  isUnique: 0
+  maxCount: 1
+  previewColor: {r: 0, g: 1, b: 0, a: 0.5}
