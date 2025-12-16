@@ -4,11 +4,15 @@ public class ResearchStationWorker : ColonistWorker
 {
     [Header("Настройки станции исследования")]
     [SerializeField] private float interactionTime = 5f;
-    [SerializeField] private int researchPointsPerCycle = 1;
+    [SerializeField] private int warmleafCostPerCycle = 1;
+    [SerializeField] private float researchPointsPerCycle = 1f;
 
-    // Прогресс исследования (будет подключено к системе технологий)
-    private int currentResearchProgress = 0;
-    private int requiredResearchPoints = 100; // Пример: 100 очков для исследования
+    [Header("Текущее исследование")]
+    private string currentResearchId = "";
+    private float currentResearchProgress = 0f;
+    private float requiredResearchPoints = 100f;
+    private bool hasResourcesForResearch = false;
+    private bool isTakingResources = false;
 
     protected override float GetInteractionTime()
     {
@@ -17,10 +21,21 @@ public class ResearchStationWorker : ColonistWorker
 
     protected override void CollectResourcesFromBuilding()
     {
-        // Вместо сбора ресурсов, добавляем очки исследования
+        // Проверяем, можем ли начать исследование
+        if (!CanStartResearch())
+        {
+            Debug.Log($"{name}: не может начать исследование");
+            return;
+        }
+
+        // Добавляем прогресс исследования
         currentResearchProgress += researchPointsPerCycle;
 
-        Debug.Log($"Добавлено {researchPointsPerCycle} очков исследования. Прогресс: {currentResearchProgress}/{requiredResearchPoints}");
+        Debug.Log($"{name} добавил {researchPointsPerCycle} очков исследования. " +
+                 $"Програесс: {currentResearchProgress:F1}/{requiredResearchPoints}");
+
+        // Тратим теплолист из инвентаря
+        carriedWarmleaf = Mathf.Max(0, carriedWarmleaf - warmleafCostPerCycle);
 
         // Проверяем завершение исследования
         if (currentResearchProgress >= requiredResearchPoints)
@@ -29,42 +44,91 @@ public class ResearchStationWorker : ColonistWorker
         }
     }
 
+    private bool CanStartResearch()
+    {
+        // Проверяем активное исследование
+        if (string.IsNullOrEmpty(currentResearchId))
+        {
+            // Пытаемся получить новое исследование
+            // currentResearchId = ResearchManager.Instance.GetCurrentResearchId();
+            // requiredResearchPoints = ResearchManager.Instance.GetRequiredPoints(currentResearchId);
+
+            if (string.IsNullOrEmpty(currentResearchId))
+            {
+                Debug.Log($"{name}: нет активного исследования");
+                return false;
+            }
+        }
+
+        // Проверяем, достаточно ли ресурсов в инвентаре
+        if (carriedWarmleaf < warmleafCostPerCycle)
+        {
+            // Пытаемся взять ресурсы из главного здания
+            if (!TakeResourcesFromMainBuilding())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool TakeResourcesFromMainBuilding()
+    {
+        if (isTakingResources) return false;
+
+        if (mainBuilding == null)
+        {
+            Debug.Log($"{name}: главное здание не найдено");
+            return false;
+        }
+
+        MainBuilding mainBuildingScript = mainBuilding.GetComponent<MainBuilding>();
+        if (mainBuildingScript == null)
+        {
+            Debug.Log($"{name}: скрипт MainBuilding не найден");
+            return false;
+        }
+
+        // Пытаемся взять теплолист из главного здания
+        if (mainBuildingScript.TryTakeResource("warmleaf", warmleafCostPerCycle))
+        {
+            carriedWarmleaf += warmleafCostPerCycle;
+            hasResourcesForResearch = true;
+            Debug.Log($"{name} взял {warmleafCostPerCycle} теплолиста из главного здания");
+            return true;
+        }
+
+        Debug.Log($"{name}: недостаточно теплолиста в главном здании");
+        hasResourcesForResearch = false;
+        return false;
+    }
+
     protected override bool HasResourcesToDeliver()
     {
-        // Для исследовательской станции не нужно носить ресурсы в главное здание
-        // Вместо этого ресурсы берутся ИЗ главного здания
+        // Исследовательская станция НЕ сдает ресурсы, а берет их
         return false;
     }
 
     private void CompleteResearch()
     {
-        Debug.Log("Исследование завершено!");
-        currentResearchProgress = 0;
+        Debug.Log($"Исследование '{currentResearchId}' завершено!");
 
-        // Здесь будет вызов системы технологий
-        // TechnologyManager.Instance.CompleteCurrentResearch();
+        // Сообщаем менеджеру исследований
+        // ResearchManager.Instance.CompleteResearch(currentResearchId);
+
+        // Сбрасываем прогресс
+        currentResearchProgress = 0f;
+        currentResearchId = "";
+        hasResourcesForResearch = false;
+        carriedWarmleaf = 0;
     }
 
-    // Метод для взятия ресурсов из главного здания (обратный цикл)
-    public bool TakeResourcesFromMainBuilding()
-    {
-        // Проверяем доступность технологии для исследования
-        if (!IsResearchAvailable()) return false;
+    // Публичные методы для UI
+    public float GetResearchProgressPercentage() =>
+        requiredResearchPoints > 0 ? currentResearchProgress / requiredResearchPoints : 0f;
 
-        // Берем ресурсы из главного здания
-        // Реализация будет когда добавим MainBuilding
-        return true;
-    }
-
-    private bool IsResearchAvailable()
-    {
-        // Проверяем выбрана ли технология для исследования
-        // Пока возвращаем true для теста
-        return true;
-    }
-
-    public int GetResearchProgress() => currentResearchProgress;
-    public int GetRequiredResearchPoints() => requiredResearchPoints;
-    public float GetResearchPercentage() =>
-        requiredResearchPoints > 0 ? (float)currentResearchProgress / requiredResearchPoints : 0f;
+    public string GetCurrentResearchName() => currentResearchId;
+    public bool HasActiveResearch() => !string.IsNullOrEmpty(currentResearchId);
+    public bool HasResearchResources() => hasResourcesForResearch;
 }

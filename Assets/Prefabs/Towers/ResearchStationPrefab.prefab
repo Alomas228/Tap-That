@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3097690807784821191}
   - component: {fileID: 4561598738118995350}
   - component: {fileID: 749435842572443791}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: ResearchStationPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}

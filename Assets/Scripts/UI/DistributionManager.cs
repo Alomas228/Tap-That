@@ -47,6 +47,12 @@ public class DistributionManager : MonoBehaviour
     private Dictionary<BuildingType, List<ColonistWorker>> buildingWorkers = new();
     private Dictionary<BuildingType, List<Transform>> availableBuildings = new();
 
+    // Данные зданий для сравнения
+    private BuildingData warmleafStationData;
+    private BuildingData researchStationData;
+    private BuildingData enricherData;
+    private BuildingData houseData;
+
     void Awake()
     {
         if (Instance == null)
@@ -69,15 +75,26 @@ public class DistributionManager : MonoBehaviour
             colonistManager.OnColonistChanged += OnColonistChanged;
         }
 
+        // Получаем данные зданий
+        if (buildingManager != null)
+        {
+            warmleafStationData = buildingManager.GetWarmleafStationData();
+            researchStationData = buildingManager.GetResearchStationData();
+            enricherData = buildingManager.GetEnricherData();
+            houseData = buildingManager.GetHouseData();
+        }
+
         CheckBuildingsExistence(true);
         UpdateAvailableBuildings();
         InitializeButtons();
         UpdateAllUI();
+
+        Debug.Log("DistributionManager инициализирован");
     }
 
     void Update()
     {
-        if (Time.frameCount % 120 == 0)
+        if (Time.frameCount % 120 == 0) // Каждые 2 секунды при 60 FPS
         {
             CheckBuildingsExistence(false);
             UpdateAvailableBuildings();
@@ -112,12 +129,8 @@ public class DistributionManager : MonoBehaviour
         bool prevResearch = hasResearchStation;
         bool prevEnricher = hasEnricher;
 
-        BuildingData processingData = buildingManager.GetWarmleafStationData();
-        BuildingData researchData = buildingManager.GetResearchStationData();
-        BuildingData enricherData = buildingManager.GetEnricherData();
-
-        hasProcessingStation = processingData != null && buildingManager.GetBuildingCount(processingData) > 0;
-        hasResearchStation = researchData != null && buildingManager.GetBuildingCount(researchData) > 0;
+        hasProcessingStation = warmleafStationData != null && buildingManager.GetBuildingCount(warmleafStationData) > 0;
+        hasResearchStation = researchStationData != null && buildingManager.GetBuildingCount(researchStationData) > 0;
         hasEnricher = enricherData != null && buildingManager.GetBuildingCount(enricherData) > 0;
 
         if (logChanges && (prevProcessing != hasProcessingStation ||
@@ -138,33 +151,54 @@ public class DistributionManager : MonoBehaviour
         availableBuildings[BuildingType.ResearchStation] = new List<Transform>();
         availableBuildings[BuildingType.Enricher] = new List<Transform>();
 
-        // Исправляем устаревший метод FindObjectsOfType
+        if (buildingManager == null) return;
+
         Building[] allBuildings = FindObjectsByType<Building>(FindObjectsSortMode.None);
+        int buildingsFound = 0;
 
         foreach (var building in allBuildings)
         {
+            // Пропускаем главное здание и жилища
             if (building is MainBuilding) continue;
 
             BuildingData data = building.GetBuildingData();
             if (data == null || !building.IsBuilt()) continue;
 
-            BuildingType type = GetBuildingTypeFromData(data);
-            availableBuildings[type].Add(building.transform);
+            // Проверяем тип здания
+            BuildingType type = BuildingType.ProcessingStation; // По умолчанию
+
+            if (data == warmleafStationData)
+            {
+                type = BuildingType.ProcessingStation;
+                availableBuildings[type].Add(building.transform);
+                buildingsFound++;
+               
+            }
+            else if (data == researchStationData)
+            {
+                type = BuildingType.ResearchStation;
+                availableBuildings[type].Add(building.transform);
+                buildingsFound++;
+                
+            }
+            else if (data == enricherData)
+            {
+                type = BuildingType.Enricher;
+                availableBuildings[type].Add(building.transform);
+                buildingsFound++;
+               
+            }
+            else if (data == houseData)
+            {
+                // Жилище - не рабочее здание, пропускаем
+                continue;
+            }
+            else
+            {
+                Debug.LogWarning($"Неизвестный тип здания: {data.buildingName}");
+            }
         }
-    }
 
-    private BuildingType GetBuildingTypeFromData(BuildingData data)
-    {
-        if (buildingManager == null) return BuildingType.ProcessingStation;
-
-        if (data == buildingManager.GetWarmleafStationData())
-            return BuildingType.ProcessingStation;
-        else if (data == buildingManager.GetResearchStationData())
-            return BuildingType.ResearchStation;
-        else if (data == buildingManager.GetEnricherData())
-            return BuildingType.Enricher;
-
-        return BuildingType.ProcessingStation;
     }
 
     #endregion
@@ -345,6 +379,7 @@ public class DistributionManager : MonoBehaviour
 
             CreateColonistWorker(buildingType);
             UpdateAllUI();
+            Debug.Log($"Добавлен рабочий на {buildingType}. Всего: {GetWorkersOnBuilding(buildingType)}");
         }
     }
 
@@ -369,6 +404,7 @@ public class DistributionManager : MonoBehaviour
 
             RemoveColonistWorker(buildingType);
             UpdateAllUI();
+            Debug.Log($"Удален рабочий с {buildingType}. Осталось: {GetWorkersOnBuilding(buildingType)}");
         }
     }
 
@@ -384,12 +420,33 @@ public class DistributionManager : MonoBehaviour
             return;
         }
 
+        // Получаем здание для назначения
+        Transform building = GetAvailableBuilding(buildingType);
+        if (building == null)
+        {
+            Debug.LogError($"Нет доступных зданий типа {buildingType}!");
+            ShowNotification($"Нет построенных зданий типа {buildingType}!");
+            return;
+        }
+
+        // Проверяем что это правильный тип здания
+        Building buildingComponent = building.GetComponent<Building>();
+        if (buildingComponent == null)
+        {
+            Debug.LogError($"Здание {building.name} не имеет компонента Building!");
+            return;
+        }
+
+        BuildingData data = buildingComponent.GetBuildingData();
+        Debug.Log($"Создаем колониста для здания: {building.name} ({data?.buildingName})");
+
+        // Создаем колониста
         Vector3 spawnPos = GetMainBuildingPosition();
         GameObject colonistObj = Instantiate(colonistWorkerPrefab, spawnPos, Quaternion.identity, colonistWorkerContainer);
-        colonistObj.name = $"ColonistWorker_{buildingType}";
+        colonistObj.name = $"ColonistWorker_{buildingType}_{System.Guid.NewGuid().ToString("N").Substring(0, 4)}";
 
+        // Добавляем соответствующий скрипт
         ColonistWorker worker = null;
-
         switch (buildingType)
         {
             case BuildingType.ProcessingStation:
@@ -405,7 +462,7 @@ public class DistributionManager : MonoBehaviour
 
         if (worker != null)
         {
-            // Теперь поля public - можно напрямую обращаться
+            // Настраиваем визуал
             Transform visualTransform = colonistObj.transform.Find("Visual");
             if (visualTransform != null)
             {
@@ -413,22 +470,17 @@ public class DistributionManager : MonoBehaviour
                 worker.spriteRenderer = visualTransform.GetComponent<SpriteRenderer>();
             }
 
-            Transform building = GetAvailableBuilding(buildingType);
-            if (building != null)
-            {
-                worker.AssignToBuilding(building);
-                Debug.Log($"Колонист назначен на здание: {building.name}");
-            }
-            else
-            {
-                Debug.LogWarning($"Нет доступных зданий типа {buildingType} для назначения");
-            }
+            // Назначаем на здание
+            worker.AssignToBuilding(building);
 
+            // Сохраняем в словарь
             if (!buildingWorkers.ContainsKey(buildingType))
             {
                 buildingWorkers[buildingType] = new List<ColonistWorker>();
             }
             buildingWorkers[buildingType].Add(worker);
+
+            Debug.Log($"Создан {worker.GetType().Name} для здания {building.name}");
         }
     }
 
@@ -437,11 +489,13 @@ public class DistributionManager : MonoBehaviour
         if (!buildingWorkers.ContainsKey(buildingType) || buildingWorkers[buildingType].Count == 0)
             return;
 
+        // Удаляем первого рабочего в списке
         ColonistWorker workerToRemove = buildingWorkers[buildingType][0];
         buildingWorkers[buildingType].RemoveAt(0);
 
         if (workerToRemove != null)
         {
+            Debug.Log($"Удаляем колониста: {workerToRemove.name}");
             Destroy(workerToRemove.gameObject);
         }
     }
@@ -450,12 +504,48 @@ public class DistributionManager : MonoBehaviour
     {
         if (availableBuildings.ContainsKey(buildingType) && availableBuildings[buildingType].Count > 0)
         {
-            // Распределяем рабочих по разным зданиям
-            int buildingIndex = buildingWorkers.ContainsKey(buildingType) ?
-                buildingWorkers[buildingType].Count % availableBuildings[buildingType].Count : 0;
+            // Распределяем рабочих равномерно по зданиям
+            int buildingIndex = 0;
+            if (buildingWorkers.ContainsKey(buildingType))
+            {
+                buildingIndex = buildingWorkers[buildingType].Count % availableBuildings[buildingType].Count;
+            }
 
-            return availableBuildings[buildingType][buildingIndex];
+            Transform building = availableBuildings[buildingType][buildingIndex];
+
+            // Проверяем тип здания
+            Building buildingComponent = building.GetComponent<Building>();
+            if (buildingComponent != null)
+            {
+                BuildingData data = buildingComponent.GetBuildingData();
+
+                // Дополнительная проверка типа здания
+                bool isCorrectType = false;
+                switch (buildingType)
+                {
+                    case BuildingType.ProcessingStation:
+                        isCorrectType = data == warmleafStationData;
+                        break;
+                    case BuildingType.ResearchStation:
+                        isCorrectType = data == researchStationData;
+                        break;
+                    case BuildingType.Enricher:
+                        isCorrectType = data == enricherData;
+                        break;
+                }
+
+                if (!isCorrectType)
+                {
+                    Debug.LogError($"Ошибка! Здание {building.name} имеет тип {data?.buildingName}, " +
+                                 $"но ожидается {buildingType}");
+                    return null;
+                }
+            }
+
+            return building;
         }
+
+        Debug.LogWarning($"Нет доступных зданий типа {buildingType}");
         return null;
     }
 
@@ -516,7 +606,8 @@ public class DistributionManager : MonoBehaviour
 
     public void ForceUpdateUI()
     {
-        CheckBuildingsExistence(false);
+        CheckBuildingsExistence(true);
+        UpdateAvailableBuildings();
         UpdateAllUI();
     }
 

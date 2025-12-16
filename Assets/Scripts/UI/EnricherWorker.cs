@@ -8,25 +8,26 @@ public class EnricherWorker : ColonistWorker
     [SerializeField] private int mirallitePerCycle = 1;
 
     [Header("Система аномалий")]
-    [SerializeField] private float baseAnomalyChance = 10f; // 10%
-    [SerializeField] private float colonistMultiplier = 0.5f; // +0.5% за каждого колониста
+    [SerializeField] private float baseAnomalyChance = 10f;
+    [SerializeField] private float colonistMultiplier = 0.5f;
     [SerializeField] private float anomalyDuration = 5f;
 
     private bool isAnomalyActive = false;
     private AnomalyType currentAnomaly = AnomalyType.None;
     private float anomalyTimer = 0f;
+    private float speedBonusMultiplier = 1f;
 
     public enum AnomalyType
     {
         None,
-        EnergySurge,        // Энергетический всплеск - добыча x2
-        RegenerativeStorm,  // Регенеративный шторм - восстановление x10
-        PheromoneRelease    // Феромонный выброс - скорость +2%
+        EnergySurge,        // Добыча x2
+        RegenerativeStorm,  // Восстановление x10
+        PheromoneRelease    // Скорость +2%
     }
 
     protected override float GetInteractionTime()
     {
-        return interactionTime;
+        return interactionTime / speedBonusMultiplier;
     }
 
     protected override void CollectResourcesFromBuilding()
@@ -39,25 +40,32 @@ public class EnricherWorker : ColonistWorker
             switch (currentAnomaly)
             {
                 case AnomalyType.EnergySurge:
-                    miralliteToAdd *= 2; // x2 добыча
+                    miralliteToAdd *= 2;
+                    Debug.Log($"{name}: Энергетический всплеск! Добыча x2");
                     break;
-                    // Другие аномалии будут влиять по-другому
+
+                case AnomalyType.RegenerativeStorm:
+                    Debug.Log($"{name}: Регенеративный шторм активен");
+                    break;
+
+                case AnomalyType.PheromoneRelease:
+                    Debug.Log($"{name}: Феромонный выброс, скорость +{((speedBonusMultiplier - 1) * 100):F0}%");
+                    break;
             }
         }
 
         AddCarriedResource("mirallite", miralliteToAdd);
-        Debug.Log($"Колонист добыл {miralliteToAdd} мираллита" +
+        Debug.Log($"{name} добыл {miralliteToAdd} мираллита" +
                  (isAnomalyActive ? $" (аномалия: {currentAnomaly})" : ""));
 
-        // Проверяем шанс аномалии после добычи
+        // Проверяем шанс аномалии
         CheckForAnomaly();
     }
 
-    protected override void Update()  // Используем override вместо new
+    protected override void Update()
     {
-        base.Update(); // Вызываем базовый Update
+        base.Update();
 
-        // Обновляем таймер аномалии
         if (isAnomalyActive)
         {
             anomalyTimer -= Time.deltaTime;
@@ -72,17 +80,11 @@ public class EnricherWorker : ColonistWorker
     {
         if (isAnomalyActive) return;
 
-        // Получаем количество колонистов
-        int colonistCount = 0;
-        if (ColonistManager.Instance != null)
-        {
-            colonistCount = ColonistManager.Instance.GetTotalColonists();
-        }
+        int colonistCount = ColonistManager.Instance != null ?
+            ColonistManager.Instance.GetTotalColonists() : 0;
 
-        // Рассчитываем шанс аномалии
         float anomalyChance = baseAnomalyChance + (colonistCount * colonistMultiplier);
 
-        // Проверяем срабатывание
         if (Random.Range(0f, 100f) <= anomalyChance)
         {
             StartRandomAnomaly();
@@ -91,7 +93,6 @@ public class EnricherWorker : ColonistWorker
 
     private void StartRandomAnomaly()
     {
-        // Выбираем случайную аномалию
         AnomalyType[] possibleAnomalies = {
             AnomalyType.EnergySurge,
             AnomalyType.RegenerativeStorm,
@@ -104,7 +105,6 @@ public class EnricherWorker : ColonistWorker
 
         Debug.Log($"АКТИВИРОВАНА АНОМАЛИЯ: {currentAnomaly} на {anomalyDuration} секунд!");
 
-        // Применяем эффекты аномалии
         ApplyAnomalyEffects(true);
     }
 
@@ -112,33 +112,36 @@ public class EnricherWorker : ColonistWorker
     {
         switch (currentAnomaly)
         {
-            case AnomalyType.EnergySurge:
-                // Эффект уже применяется в CollectResourcesFromBuilding
-                break;
-
-            case AnomalyType.RegenerativeStorm:
-                // Ускоряем восстановление прочности источников мираллита
-                // Реализуем позже
-                break;
-
             case AnomalyType.PheromoneRelease:
-                // Ускоряем всех колонистов
-                // Реализуем позже
+                if (start)
+                {
+                    speedBonusMultiplier = 1.02f;
+                }
+                else
+                {
+                    speedBonusMultiplier = 1f;
+                }
                 break;
         }
     }
 
     private void EndAnomaly()
     {
+        ApplyAnomalyEffects(false);
+
         isAnomalyActive = false;
         currentAnomaly = AnomalyType.None;
-
-        // Снимаем эффекты аномалии
-        ApplyAnomalyEffects(false);
+        speedBonusMultiplier = 1f;
 
         Debug.Log("Аномалия завершена");
     }
 
+    protected override bool HasResourcesToDeliver()
+    {
+        return carriedMirallite > 0;
+    }
+
+    // Публичные методы для UI
     public bool IsAnomalyActive() => isAnomalyActive;
     public AnomalyType GetCurrentAnomaly() => currentAnomaly;
     public float GetAnomalyTimeLeft() => anomalyTimer;

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2567171168436311820}
   - component: {fileID: 1897694593022333702}
   - component: {fileID: 3288387254358207814}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: ProcessingStationPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -147,12 +147,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 264f3aa0b16ecb84c95be1cafcf7b056, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buildingName: "\u0421\u0442\u0430\u043D\u0446\u0438\u044F \u0434\u043E\u0431\u044B\u0447\u0438
-    \u0442\u0435\u043F\u043B\u043E\u043B\u0438\u0441\u0442\u0430"
+  buildingData: {fileID: 11400000, guid: 64de3b00b525886449e0d84d8e710e89, type: 2}
   buildCost: 200
-  buildTime: 5
+  buildingNumber: 0
   isBuilt: 0
   isActive: 0
-  buildCompleteEffect: {fileID: 0}
-  modelBuilt: {fileID: 0}
-  modelConstruction: {fileID: 0}

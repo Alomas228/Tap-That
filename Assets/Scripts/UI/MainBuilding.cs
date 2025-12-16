@@ -112,7 +112,7 @@ public class MainBuilding : Building
         return true;
     }
 
-    public bool TakeResource(string resourceType, int amount)
+    public bool TryTakeResource(string resourceType, int amount)
     {
         if (amount <= 0) return false;
 
@@ -142,9 +142,50 @@ public class MainBuilding : Building
         return true;
     }
 
+    public bool CanTakeResource(string resourceType, int amount)
+    {
+        if (amount <= 0) return false;
+
+        return resourceType.ToLower() switch
+        {
+            "warmleaf" => warmleafStorage >= amount,
+            "thunderite" => thunderiteStorage >= amount,
+            "mirallite" => miralliteStorage >= amount,
+            _ => false
+        };
+    }
+
     private void SyncWithResourceManager()
     {
         if (resourceManager == null) return;
+
+        // Синхронизируем ресурсы с ResourceManager
+        int currentWarmleaf = resourceManager.GetWarmleafAmount();
+        int currentThunderite = resourceManager.GetThunderiteAmount();
+        int currentMirallite = resourceManager.GetMiralliteAmount();
+
+        // Если ресурсы в менеджере отличаются от наших - обновляем
+        if (currentWarmleaf != warmleafStorage)
+        {
+            int diff = warmleafStorage - currentWarmleaf;
+            if (diff > 0)
+                resourceManager.AddResource("warmleaf", diff);
+            // Если diff < 0, значит кто-то потратил ресурсы через ResourceManager
+        }
+
+        if (currentThunderite != thunderiteStorage)
+        {
+            int diff = thunderiteStorage - currentThunderite;
+            if (diff > 0)
+                resourceManager.AddResource("thunderite", diff);
+        }
+
+        if (currentMirallite != miralliteStorage)
+        {
+            int diff = miralliteStorage - currentMirallite;
+            if (diff > 0)
+                resourceManager.AddResource("mirallite", diff);
+        }
 
         Debug.Log($"Ресурсы в главном здании: Теплолист={warmleafStorage}, Грозалит={thunderiteStorage}, Мираллит={miralliteStorage}");
     }

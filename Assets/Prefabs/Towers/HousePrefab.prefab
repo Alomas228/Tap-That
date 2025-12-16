@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6486924292097104135}
   - component: {fileID: 8437516855381156555}
   - component: {fileID: 3191373701407533334}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: HousePrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -147,11 +147,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 264f3aa0b16ecb84c95be1cafcf7b056, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buildingName: "\u0416\u0438\u043B\u0438\u0449\u0435"
+  buildingData: {fileID: 11400000, guid: bc42b72e4a461be42a18f57722ab7854, type: 2}
   buildCost: 20
-  buildTime: 5
+  buildingNumber: 0
   isBuilt: 0
   isActive: 0
-  buildCompleteEffect: {fileID: 0}
-  modelBuilt: {fileID: 0}
-  modelConstruction: {fileID: 0}
