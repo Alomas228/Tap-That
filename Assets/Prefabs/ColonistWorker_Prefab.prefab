@@ -178,18 +178,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 2
   interactionRange: 1
-  stuckCheckInterval: 0.5
-  stuckTimeThreshold: 1.5
-  moveThreshold: 0.2
-  avoidanceDistance: 2
-  avoidanceDuration: 2
-  raycastDistance: 2
-  rayCount: 8
-  obstacleMask:
+  obstacleCheckDistance: 1
+  obstacleAvoidanceDistance: 2
+  obstacleLayer:
     serializedVersion: 2
     m_Bits: 8
-  bestDirectionWeight: 2
-  targetDirectionWeight: 1.5
+  maxRayDirections: 8
+  rayAngleStep: 45
+  rotationSmoothness: 5
+  speedSmoothness: 3
   visualObject: {fileID: 8844551129221131688}
   spriteRenderer: {fileID: 63405015834070212}
 --- !u!1 &8844551129221131688

@@ -1,44 +1,71 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class ColonistWorker : MonoBehaviour
 {
     [Header("Базовые настройки")]
     [SerializeField] protected float moveSpeed = 2f;
     [SerializeField] protected float interactionRange = 0.5f;
+    [SerializeField] protected float rotationSpeed = 10f;
 
-    [Header("Ленивое обнаружение препятствий")]
+    [Header("Система обнаружения застревания")]
     [SerializeField] protected float stuckCheckInterval = 0.5f;
-    [SerializeField] protected float stuckTimeThreshold = 1.5f;
-    [SerializeField] protected float moveThreshold = 0.2f;
+    [SerializeField] protected float stuckTimeThreshold = 2f;
+    [SerializeField] protected float stuckMoveThreshold = 0.2f;
+    [SerializeField] protected float stuckResetDistance = 2f;
 
-    [Header("Алгоритм обхода")]
-    [SerializeField] protected float avoidanceDistance = 2f;
-    [SerializeField] protected float avoidanceDuration = 2f;
+    [Header("Интеллектуальный обход зданий")]
+    [SerializeField] protected float buildingAvoidanceRadius = 3f;
+    [SerializeField] protected float obstacleDetectionRadius = 1.5f;
+    [SerializeField] protected LayerMask buildingLayer;
+    [SerializeField] protected LayerMask obstacleLayer;
+
+    [Header("Алгоритм A* (упрощенный)")]
+    [SerializeField] protected int maxSearchDepth = 50;
+    [SerializeField] protected float nodeSize = 0.5f;
+    [SerializeField] protected bool usePathSmoothing = true;
+    [SerializeField] protected float pathUpdateInterval = 0.5f;
 
     [Header("Визуальные ссылки")]
     [SerializeField] public GameObject visualObject;
     [SerializeField] public SpriteRenderer spriteRenderer;
+    [SerializeField] protected Color pathDebugColor = Color.cyan;
 
     [Header("Состояние")]
     protected ColonistState currentState = ColonistState.Idle;
     protected Transform targetBuilding;
     protected Transform mainBuilding;
     protected Vector3 targetPosition;
+    protected Vector3 currentVelocity;
+    protected bool isPathfinding = false;
 
     // Инвентарь
     protected int carriedWarmleaf = 0;
     protected int carriedThunderite = 0;
     protected int carriedMirallite = 0;
 
-    // Для ленивого обнаружения
-    private Vector3 lastPosition;
-    private float stuckTimer = 0f;
-    private float checkTimer = 0f;
+    // Система пути
+    private List<Vector3> currentPath = new List<Vector3>();
+    private int currentPathIndex = 0;
+    private float pathUpdateTimer = 0f;
+    private Vector3 lastTargetPosition = Vector3.zero;
+
+    // Временные точки обхода
+    private Vector3 avoidancePoint = Vector3.zero;
     private bool isAvoiding = false;
     private float avoidanceTimer = 0f;
-    private Vector3 avoidanceTarget = Vector3.zero;
-    private Vector3 originalTargetDirection = Vector3.zero;
+
+    // Система обнаружения застревания
+    private Vector3[] stuckCheckPositions = new Vector3[3];
+    private int stuckCheckIndex = 0;
+    private float stuckTimer = 0f;
+    private float stuckCheckTimer = 0f;
+    private bool isStuck = false;
+    private Vector3 stuckStartPosition;
+    private float stuckStartTime;
+    private int stuckRecoveryAttempts = 0;
+    private const int maxStuckRecoveryAttempts = 3;
 
     // Ссылки
     protected BuildingManager buildingManager;
@@ -59,14 +86,20 @@ public class ColonistWorker : MonoBehaviour
         buildingManager = BuildingManager.Instance;
         resourceManager = ResourceManager.Instance;
 
-        lastPosition = transform.position;
+        // Инициализируем слои
+        buildingLayer = LayerMask.GetMask("Buildings", "Default");
+        obstacleLayer = LayerMask.GetMask("Obstacles", "Buildings", "Default");
+
         FindMainBuilding();
         StartCoroutine(WorkRoutine());
-    }
 
-    void OnEnable()
-    {
-        ResetStuckState();
+        // Инициализируем систему обнаружения застревания
+        stuckStartPosition = transform.position;
+        stuckStartTime = Time.time;
+        for (int i = 0; i < stuckCheckPositions.Length; i++)
+        {
+            stuckCheckPositions[i] = transform.position;
+        }
     }
 
     protected virtual void Update()
@@ -75,368 +108,719 @@ public class ColonistWorker : MonoBehaviour
             currentState == ColonistState.MovingToMainBuilding ||
             currentState == ColonistState.ReturningToWork)
         {
-            UpdateMovement();
-            UpdateStuckDetection();
+            UpdateIntelligentMovement();
+            UpdateStuckDetection(); // Добавляем проверку застревания
+            UpdateVisuals();
         }
-
-        UpdateVisuals();
     }
 
+    #region СИСТЕМА ОБНАРУЖЕНИЯ ЗАСТРЕВАНИЯ
 
-
-    #region ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ДЛЯ ТОЧЕК
-
-    // Получить середину нижнего края BoxCollider2D здания
-    private Vector3 GetBuildingBottomCenter(Transform building)
+    private void UpdateStuckDetection()
     {
-        BoxCollider2D collider = building.GetComponent<BoxCollider2D>();
-        if (collider != null)
+        stuckCheckTimer += Time.deltaTime;
+
+        if (stuckCheckTimer >= stuckCheckInterval)
         {
-            // Получаем границы коллайдера в мировых координатах
-            Bounds bounds = collider.bounds;
+            stuckCheckTimer = 0f;
 
-            // Середина нижнего края коллайдера
-            Vector3 bottomCenter = new Vector3(
-                bounds.center.x,    // Центр по X
-                bounds.min.y,       // Самая нижняя точка по Y
-                0
-            );
+            // Сохраняем текущую позицию для истории
+            stuckCheckPositions[stuckCheckIndex] = transform.position;
+            stuckCheckIndex = (stuckCheckIndex + 1) % stuckCheckPositions.Length;
 
-            return bottomCenter;
+            // Проверяем движение за последние N позиций
+            float totalMovement = 0f;
+            for (int i = 0; i < stuckCheckPositions.Length - 1; i++)
+            {
+                int currentIndex = (stuckCheckIndex + i) % stuckCheckPositions.Length;
+                int nextIndex = (stuckCheckIndex + i + 1) % stuckCheckPositions.Length;
+                totalMovement += Vector3.Distance(stuckCheckPositions[currentIndex], stuckCheckPositions[nextIndex]);
+            }
+
+            // Если движение меньше порога - считаем что застрял
+            if (totalMovement < stuckMoveThreshold)
+            {
+                stuckTimer += stuckCheckInterval;
+
+                if (!isStuck && stuckTimer >= stuckTimeThreshold)
+                {
+                    OnStuckDetected();
+                }
+            }
+            else
+            {
+                // Движется - сбрасываем таймер
+                stuckTimer = Mathf.Max(0, stuckTimer - stuckCheckInterval * 0.5f);
+
+                // Если ушли достаточно далеко от места застревания - сбрасываем состояние
+                if (isStuck && Vector3.Distance(transform.position, stuckStartPosition) > stuckResetDistance)
+                {
+                    OnStuckRecovered();
+                }
+            }
+        }
+
+        // Если застрял - применяем специальную логику
+        if (isStuck)
+        {
+            ExecuteStuckRecovery();
+        }
+    }
+
+    private void OnStuckDetected()
+    {
+        isStuck = true;
+        stuckStartPosition = transform.position;
+        stuckStartTime = Time.time;
+        stuckRecoveryAttempts = 0;
+
+        Debug.LogWarning($"{name} ЗАСТРЯЛ в позиции {transform.position}. Начинаю процедуру выхода...");
+
+        // Прерываем текущий путь
+        currentPath.Clear();
+        currentPathIndex = 0;
+        isAvoiding = false;
+
+        // Уведомление для UI
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowNotification($"{name} застрял! Пытаюсь выйти...", 2f);
+        }
+    }
+
+    private void OnStuckRecovered()
+    {
+        isStuck = false;
+        stuckTimer = 0f;
+        stuckRecoveryAttempts = 0;
+
+        Debug.Log($"{name} ВЫШЕЛ ИЗ ЗАСТРЕВАНИЯ! Позиция: {transform.position}");
+
+        // Пересчитываем путь к цели
+        if (targetBuilding != null)
+        {
+            Vector3 desiredTarget = GetOptimalApproachPoint(targetBuilding);
+            CalculatePathToTarget(desiredTarget);
+        }
+    }
+
+    private void ExecuteStuckRecovery()
+    {
+        // Проверяем не слишком ли долго застряли
+        if (Time.time - stuckStartTime > stuckTimeThreshold * 3f)
+        {
+            stuckRecoveryAttempts++;
+
+            if (stuckRecoveryAttempts >= maxStuckRecoveryAttempts)
+            {
+                // Критическое застревание - радикальные меры
+                ExecuteCriticalStuckRecovery();
+                return;
+            }
+        }
+
+        // Определяем в какую сторону пытаться выйти
+        Vector3 recoveryDirection = CalculateStuckRecoveryDirection();
+
+        // Двигаемся в направлении выхода
+        transform.position += recoveryDirection * moveSpeed * Time.deltaTime * 0.7f;
+
+        // Обновляем визуалы для отладки
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = Color.Lerp(Color.red, Color.yellow, Mathf.PingPong(Time.time * 2f, 1f));
+            spriteRenderer.flipX = recoveryDirection.x < 0;
+        }
+
+        // Проверяем свободно ли впереди
+        RaycastHit2D hit = Physics2D.Raycast(
+            transform.position,
+            recoveryDirection,
+            obstacleDetectionRadius,
+            obstacleLayer | buildingLayer
+        );
+
+        if (hit.collider != null &&
+            hit.collider.gameObject != gameObject &&
+            hit.collider.transform != targetBuilding &&
+            hit.collider.transform != mainBuilding)
+        {
+            // Есть препятствие - пробуем другое направление
+            recoveryDirection = Quaternion.Euler(0, 0, 90) * recoveryDirection;
+        }
+    }
+
+    private Vector3 CalculateStuckRecoveryDirection()
+    {
+        // 1. Пробуем движение перпендикулярно к цели
+        if (targetBuilding != null)
+        {
+            Vector3 toTarget = (GetOptimalApproachPoint(targetBuilding) - transform.position).normalized;
+            Vector3 perpendicular = new Vector3(-toTarget.y, toTarget.x, 0);
+
+            // Выбираем направление с лучшей проходимостью
+            float rightClearance = CheckDirectionClearance(perpendicular);
+            float leftClearance = CheckDirectionClearance(-perpendicular);
+
+            return (rightClearance >= leftClearance) ? perpendicular : -perpendicular;
+        }
+
+        // 2. Пробуем случайные направления
+        float angle = Random.Range(0f, 360f);
+        return Quaternion.Euler(0, 0, angle) * Vector3.right;
+    }
+
+    private float CheckDirectionClearance(Vector3 direction)
+    {
+        float maxDistance = obstacleDetectionRadius * 1.5f;
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, maxDistance, obstacleLayer | buildingLayer);
+
+        if (hit.collider != null &&
+            hit.collider.gameObject != gameObject &&
+            hit.collider.transform != targetBuilding &&
+            hit.collider.transform != mainBuilding)
+        {
+            return hit.distance;
+        }
+
+        return maxDistance;
+    }
+
+    private void ExecuteCriticalStuckRecovery()
+    {
+        Debug.LogWarning($"{name} КРИТИЧЕСКОЕ ЗАСТРЕВАНИЕ! Применяю экстренные меры...");
+
+        // 1. Телепортация на небольшое расстояние
+        Vector3 teleportDirection = CalculateStuckRecoveryDirection();
+        Vector3 teleportPosition = transform.position + teleportDirection * 1.5f;
+
+        // Проверяем можно ли телепортироваться
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(teleportPosition, 0.5f, obstacleLayer | buildingLayer);
+        bool canTeleport = true;
+
+        foreach (var collider in colliders)
+        {
+            if (collider.gameObject != gameObject &&
+                collider.transform != targetBuilding &&
+                collider.transform != mainBuilding)
+            {
+                canTeleport = false;
+                break;
+            }
+        }
+
+        if (canTeleport)
+        {
+            transform.position = teleportPosition;
+            Debug.Log($"{name} телепортирован в {transform.position}");
         }
         else
         {
-            // Если нет коллайдера, используем позицию здания минус 0.5 по Y
-            Debug.LogWarning($"У здания {building.name} нет BoxCollider2D");
-            return building.position + new Vector3(0, -0.5f, 0);
+            // 2. Пробуем другое направление
+            teleportDirection = Quaternion.Euler(0, 0, 180) * teleportDirection;
+            teleportPosition = transform.position + teleportDirection * 1.5f;
+
+            transform.position = teleportPosition;
+            Debug.Log($"{name} телепортирован в обратном направлении в {transform.position}");
         }
+
+        // Сбрасываем состояние застревания
+        OnStuckRecovered();
     }
 
     #endregion
 
-    #region ПОЛНЫЙ ЦИКЛ РАБОТЫ
+    #region ИСПРАВЛЕННАЯ СИСТЕМА ДВИЖЕНИЯ (с цикличностью)
+
+    protected virtual void UpdateIntelligentMovement()
+    {
+        if (targetBuilding == null || currentState == ColonistState.Idle || isStuck) return;
+
+        // Определяем целевую позицию
+        Vector3 desiredTarget = GetOptimalApproachPoint(targetBuilding);
+
+        if (currentState == ColonistState.MovingToMainBuilding && mainBuilding != null)
+        {
+            desiredTarget = GetOptimalApproachPoint(mainBuilding);
+        }
+
+        // Если цель изменилась или нет пути - пересчитываем путь
+        pathUpdateTimer += Time.deltaTime;
+        if (pathUpdateTimer >= pathUpdateInterval ||
+            Vector3.Distance(desiredTarget, lastTargetPosition) > 0.5f ||
+            currentPath.Count == 0)
+        {
+            CalculatePathToTarget(desiredTarget);
+            pathUpdateTimer = 0f;
+            lastTargetPosition = desiredTarget;
+        }
+
+        // Если есть путь - следуем по нему
+        if (currentPath.Count > 0 && currentPathIndex < currentPath.Count)
+        {
+            FollowPath();
+        }
+        else
+        {
+            // Резервный алгоритм прямого движения с обходом
+            MoveWithSimpleAvoidance(desiredTarget);
+        }
+
+        // Проверяем достижение цели
+        float distanceToTarget = Vector3.Distance(transform.position, desiredTarget);
+        if (distanceToTarget <= interactionRange)
+        {
+            OnReachedTarget();
+        }
+    }
+
+    #region ПОЛНЫЙ ЦИКЛ РАБОТЫ (исправленный)
 
     protected virtual IEnumerator WorkRoutine()
     {
+        // Ждем пока назначим здание
         while (targetBuilding == null)
         {
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.5f);
         }
 
         Debug.Log($"{name} начал работу на {targetBuilding.name}");
 
+        // БЕСКОНЕЧНЫЙ ЦИКЛ РАБОТЫ
         while (true)
         {
-            // 1. Идем к нижней точке здания
+            // 1. Идем к зданию
             currentState = ColonistState.MovingToBuilding;
-            SetTargetPosition(GetBuildingBottomCenter(targetBuilding));
-            yield return StartCoroutine(MoveToTarget());
+            Debug.Log($"{name} идет к зданию {targetBuilding.name}");
 
-            // 2. Входим в здание и работаем
+            // Ждем пока дойдет до здания ИЛИ застрянет на слишком долго
+            yield return StartCoroutine(MoveToTargetWithTimeout(targetBuilding, 30f));
+
+            // Проверяем не застряли ли мы
+            if (isStuck)
+            {
+                Debug.LogWarning($"{name} застрял по пути к зданию. Жду выхода...");
+                yield return new WaitUntil(() => !isStuck);
+                continue; // Начинаем цикл заново
+            }
+
+            // Проверяем что действительно дошли
+            if (currentState != ColonistState.Interacting)
+            {
+                Debug.LogWarning($"{name} не дошел до здания. Перезапускаю...");
+                continue;
+            }
+
+            // 2. Взаимодействуем со зданием
+            Debug.Log($"{name} взаимодействует с {targetBuilding.name}");
             yield return StartCoroutine(InteractWithBuilding());
+
+            // Проверяем не застряли ли во взаимодействии
+            if (currentState != ColonistState.Idle)
+            {
+                Debug.LogWarning($"{name} застрял во взаимодействии. Продолжаю...");
+                currentState = ColonistState.Idle;
+            }
 
             // 3. Если есть ресурсы - несем в главное здание
             if (HasResourcesToDeliver())
             {
-                yield return StartCoroutine(DeliverResourcesToMainBuilding());
+                currentState = ColonistState.MovingToMainBuilding;
+                Debug.Log($"{name} несет ресурсы в главное здание");
+
+                // Ждем пока дойдет до главного здания
+                yield return StartCoroutine(MoveToTargetWithTimeout(mainBuilding, 30f));
+
+                // Проверяем не застряли ли
+                if (isStuck)
+                {
+                    Debug.LogWarning($"{name} застрял по пути к главному зданию. Жду выхода...");
+                    yield return new WaitUntil(() => !isStuck);
+                    continue;
+                }
+
+                // Проверяем что дошли
+                if (currentState != ColonistState.DeliveringResources)
+                {
+                    Debug.LogWarning($"{name} не дошел до главного здания. Перезапускаю...");
+                    continue;
+                }
+
+                // Сдаем ресурсы
+                DeliverResources();
+                Debug.Log($"{name} сдал ресурсы");
 
                 // 4. Возвращаемся к работе
                 currentState = ColonistState.ReturningToWork;
-                SetTargetPosition(GetBuildingBottomCenter(targetBuilding));
-                yield return StartCoroutine(MoveToTarget());
+                Debug.Log($"{name} возвращается к работе");
+
+                // Ждем возвращения
+                yield return StartCoroutine(MoveToTargetWithTimeout(targetBuilding, 30f));
+
+                if (isStuck)
+                {
+                    Debug.LogWarning($"{name} застрял при возвращении. Жду выхода...");
+                    yield return new WaitUntil(() => !isStuck);
+                }
             }
 
-            // Пауза между циклами
+            // Короткая пауза между циклами
             yield return new WaitForSeconds(0.5f);
+
+            // Сбрасываем состояние застревания на случай если были небольшие проблемы
+            if (!isStuck && stuckTimer > 0)
+            {
+                stuckTimer = Mathf.Max(0, stuckTimer - 1f);
+            }
+        }
+    }
+
+    private IEnumerator MoveToTargetWithTimeout(Transform building, float timeout)
+    {
+        float startTime = Time.time;
+        Vector3 initialPosition = transform.position;
+
+        while (currentState == ColonistState.MovingToBuilding ||
+               currentState == ColonistState.MovingToMainBuilding ||
+               currentState == ColonistState.ReturningToWork)
+        {
+            // Проверяем таймаут
+            if (Time.time - startTime > timeout)
+            {
+                Debug.LogWarning($"{name} таймаут движения к {building.name}. Перезапускаю...");
+
+                // Сбрасываем путь и пробуем заново
+                currentPath.Clear();
+                currentPathIndex = 0;
+                pathUpdateTimer = pathUpdateInterval;
+
+                // Проверяем не на месте ли мы уже
+                float distance = Vector3.Distance(transform.position, GetOptimalApproachPoint(building));
+                if (distance <= interactionRange * 1.5f)
+                {
+                    // Мы близко - считаем что дошли
+                    break;
+                }
+
+                // Проверяем движение
+                if (Vector3.Distance(transform.position, initialPosition) < stuckMoveThreshold * 3f)
+                {
+                    // Не сдвинулись с места - активируем застревание
+                    OnStuckDetected();
+                }
+
+                startTime = Time.time; // Сброс таймера
+            }
+
+            yield return null;
         }
     }
 
     #endregion
 
-    #region ДВИЖЕНИЕ
-
-    protected virtual IEnumerator MoveToTarget()
+    private void OnReachedTarget()
     {
-        // Запоминаем первоначальное направление
-        if (currentState == ColonistState.MovingToBuilding ||
-            currentState == ColonistState.ReturningToWork)
-        {
-            originalTargetDirection = (targetPosition - transform.position).normalized;
-        }
-
-        while (Vector3.Distance(transform.position, targetPosition) > interactionRange)
-        {
-            yield return null;
-        }
-
-        // Достигли цели
         switch (currentState)
         {
             case ColonistState.MovingToBuilding:
                 currentState = ColonistState.Interacting;
                 break;
+
             case ColonistState.MovingToMainBuilding:
                 currentState = ColonistState.DeliveringResources;
                 break;
+
             case ColonistState.ReturningToWork:
                 currentState = ColonistState.Interacting;
                 break;
         }
 
-        ResetStuckState();
-    }
+        // Сбрасываем путь
+        currentPath.Clear();
+        currentPathIndex = 0;
+        isAvoiding = false;
 
-    protected virtual void UpdateMovement()
-    {
-        if (currentState == ColonistState.MovingToBuilding ||
-            currentState == ColonistState.MovingToMainBuilding ||
-            currentState == ColonistState.ReturningToWork)
+        // Сбрасываем застревание при успешном достижении цели
+        if (isStuck)
         {
-            Vector3 direction;
-
-            // Если близко к целевому зданию - идем прямо к нему
-            if (currentState == ColonistState.MovingToBuilding ||
-                currentState == ColonistState.ReturningToWork)
-            {
-                float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
-
-                if (distanceToTarget < avoidanceDistance)
-                {
-                    // Близко к целевому зданию - всегда идем прямо к нему
-                    direction = (targetPosition - transform.position).normalized;
-                }
-                else if (isAvoiding)
-                {
-                    // В режиме обхода
-                    direction = (avoidanceTarget - transform.position).normalized;
-
-                    // Если достигли точки обхода, пробуем вернуться
-                    if (Vector3.Distance(transform.position, avoidanceTarget) < 0.3f ||
-                        avoidanceTimer < avoidanceDuration * 0.3f)
-                    {
-                        Vector3 toTarget = (targetPosition - transform.position).normalized;
-                        direction = toTarget;
-                    }
-                }
-                else
-                {
-                    // Обычное движение к цели
-                    direction = (targetPosition - transform.position).normalized;
-                }
-            }
-            else if (isAvoiding)
-            {
-                // Для главного здания - режим обхода
-                direction = (avoidanceTarget - transform.position).normalized;
-
-                if (Vector3.Distance(transform.position, avoidanceTarget) < 0.3f ||
-                    avoidanceTimer < avoidanceDuration * 0.3f)
-                {
-                    Vector3 toTarget = (targetPosition - transform.position).normalized;
-                    direction = toTarget;
-                }
-            }
-            else
-            {
-                // Обычное движение
-                direction = (targetPosition - transform.position).normalized;
-            }
-
-            // Двигаемся в выбранном направлении
-            transform.position += direction * moveSpeed * Time.deltaTime;
-
-            // Поворачиваем спрайт
-            if (spriteRenderer != null && direction.x != 0)
-            {
-                spriteRenderer.flipX = direction.x < 0;
-            }
+            OnStuckRecovered();
         }
     }
 
     #endregion
 
-    #region ВЗАИМОДЕЙСТВИЕ С ЗДАНИЯМИ
+    #region ОСТАЛЬНЫЕ МЕТОДЫ (оптимизированные)
 
-    protected virtual IEnumerator InteractWithBuilding()
+    private void CalculatePathToTarget(Vector3 target)
     {
-        // Скрываем колониста при входе в здание
-        if (visualObject != null)
+        currentPath.Clear();
+        currentPathIndex = 0;
+
+        Vector3 start = transform.position;
+
+        // Прямая линия к цели
+        if (IsPathClear(start, target))
         {
-            visualObject.SetActive(false);
+            currentPath.Add(target);
+            return;
         }
 
-        // Ждем время взаимодействия
-        float interactionTime = GetInteractionTime();
-        Debug.Log($"{name} работает в здании {interactionTime} секунд");
-        yield return new WaitForSeconds(interactionTime);
+        // Ищем обходной путь
+        List<Vector3> path = FindAlternativePath(start, target);
 
-        // Собираем ресурсы (определяется в наследниках)
-        CollectResourcesFromBuilding();
-
-        // Показываем колониста при выходе
-        if (visualObject != null)
+        if (path.Count > 0)
         {
-            visualObject.SetActive(true);
-        }
+            currentPath = path;
 
-        currentState = ColonistState.Idle;
-        ResetStuckState();
-    }
-
-    protected virtual IEnumerator DeliverResourcesToMainBuilding()
-    {
-        if (mainBuilding == null)
-        {
-            Debug.LogError($"{name}: главное здание не найдено!");
-            yield break;
-        }
-
-        Debug.Log($"{name} несет ресурсы в главное здание");
-
-        // Идем к нижней точке главного здания
-        currentState = ColonistState.MovingToMainBuilding;
-        SetTargetPosition(GetBuildingBottomCenter(mainBuilding));
-        yield return StartCoroutine(MoveToTarget());
-
-        // Сдаем ресурсы
-        DeliverResources();
-
-        currentState = ColonistState.Idle;
-        ResetStuckState();
-    }
-
-    #endregion
-
-    #region ЛЕНИВОЕ ОБНАРУЖЕНИЕ ПРЕПЯТСТВИЙ
-
-    private void UpdateStuckDetection()
-    {
-        // Если близко к целевому зданию - отключаем обход
-        if (currentState == ColonistState.MovingToBuilding ||
-            currentState == ColonistState.ReturningToWork)
-        {
-            float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
-            if (distanceToTarget < avoidanceDistance * 0.5f)
+            if (usePathSmoothing && currentPath.Count > 2)
             {
-                if (isAvoiding) StopAvoidance();
-                stuckTimer = 0f;
-                return;
+                SmoothPath();
             }
-        }
-
-        checkTimer += Time.deltaTime;
-        if (checkTimer >= stuckCheckInterval)
-        {
-            checkTimer = 0f;
-
-            float distanceMoved = Vector3.Distance(transform.position, lastPosition);
-
-            if (distanceMoved < moveThreshold)
-            {
-                stuckTimer += stuckCheckInterval;
-
-                if (!isAvoiding && stuckTimer >= stuckTimeThreshold)
-                {
-                    StartAvoidance();
-                }
-            }
-            else
-            {
-                stuckTimer = Mathf.Max(0f, stuckTimer - stuckCheckInterval * 0.5f);
-            }
-
-            lastPosition = transform.position;
-        }
-
-        if (isAvoiding)
-        {
-            avoidanceTimer -= Time.deltaTime;
-            if (avoidanceTimer <= 0f) StopAvoidance();
         }
     }
 
-    private void StartAvoidance()
+    private List<Vector3> FindAlternativePath(Vector3 start, Vector3 target)
     {
-        if (currentState == ColonistState.MovingToBuilding ||
-            currentState == ColonistState.ReturningToWork)
+        List<Vector3> path = new List<Vector3>();
+        Vector3 mainObstacle = FindMainObstacle(start, target);
+
+        if (mainObstacle != Vector3.zero)
         {
-            float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
-            if (distanceToTarget < avoidanceDistance) return;
+            Vector3 avoidanceDirection = CalculateOptimalAvoidance(start, target, mainObstacle);
+            Vector3 intermediatePoint = start + avoidanceDirection * buildingAvoidanceRadius;
+
+            if (IsPathClear(start, intermediatePoint) && IsPathClear(intermediatePoint, target))
+            {
+                path.Add(intermediatePoint);
+                path.Add(target);
+            }
         }
 
-        isAvoiding = true;
-        avoidanceTimer = avoidanceDuration;
-
-        if (currentState == ColonistState.MovingToBuilding ||
-            currentState == ColonistState.ReturningToWork)
+        if (path.Count == 0)
         {
-            Vector3 perpendicular = Random.value > 0.5f
-                ? Quaternion.Euler(0, 0, 90) * originalTargetDirection
-                : Quaternion.Euler(0, 0, -90) * originalTargetDirection;
+            path.Add(CalculateSimpleAvoidancePoint(start, target));
+            path.Add(target);
+        }
 
-            avoidanceTarget = transform.position + perpendicular * avoidanceDistance;
+        return path;
+    }
+
+    private bool IsPathClear(Vector3 from, Vector3 to)
+    {
+        Vector3 direction = (to - from).normalized;
+        float distance = Vector3.Distance(from, to);
+
+        RaycastHit2D[] hits = Physics2D.RaycastAll(from, direction, distance, buildingLayer | obstacleLayer);
+
+        foreach (var hit in hits)
+        {
+            if (hit.collider != null && hit.collider.gameObject != gameObject &&
+                hit.collider.transform != targetBuilding && hit.collider.transform != mainBuilding)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void FollowPath()
+    {
+        if (currentPathIndex >= currentPath.Count) return;
+
+        Vector3 currentWaypoint = currentPath[currentPathIndex];
+        Vector3 direction = (currentWaypoint - transform.position).normalized;
+
+        // Двигаемся к точке
+        transform.position += direction * moveSpeed * Time.deltaTime;
+
+        // Поворачиваем спрайт
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX = direction.x < 0;
+        }
+
+        // Проверяем достижение точки
+        if (Vector3.Distance(transform.position, currentWaypoint) <= nodeSize)
+        {
+            currentPathIndex++;
+        }
+    }
+
+    private void MoveWithSimpleAvoidance(Vector3 target)
+    {
+        Vector3 direction = (target - transform.position).normalized;
+        float distanceToTarget = Vector3.Distance(transform.position, target);
+
+        RaycastHit2D hit = Physics2D.CircleCast(
+            transform.position, 0.3f, direction,
+            Mathf.Min(obstacleDetectionRadius, distanceToTarget),
+            obstacleLayer | buildingLayer
+        );
+
+        if (hit.collider != null && hit.collider.gameObject != gameObject &&
+            hit.collider.transform != targetBuilding && hit.collider.transform != mainBuilding)
+        {
+            Vector3 avoidanceDir = CalculateAvoidanceDirection(direction, hit.normal);
+            transform.position += avoidanceDir * moveSpeed * Time.deltaTime;
+            isAvoiding = true;
+            avoidanceTimer = 0.5f;
         }
         else
         {
-            Vector3 toTarget = (targetPosition - transform.position).normalized;
-            Vector3 perpendicular = Random.value > 0.5f
-                ? Quaternion.Euler(0, 0, 90) * toTarget
-                : Quaternion.Euler(0, 0, -90) * toTarget;
+            if (!isAvoiding || avoidanceTimer <= 0f)
+            {
+                transform.position += direction * moveSpeed * Time.deltaTime;
+            }
+            else
+            {
+                avoidanceTimer -= Time.deltaTime;
+            }
+        }
 
-            avoidanceTarget = transform.position + perpendicular * avoidanceDistance;
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX = direction.x < 0;
         }
     }
 
-
-
-    private void StopAvoidance()
+    protected Vector3 GetOptimalApproachPoint(Transform building)
     {
-        isAvoiding = false;
-        avoidanceTimer = 0f;
-        avoidanceTarget = Vector3.zero;
-        stuckTimer = 0f;
-    }
+        if (building == null) return transform.position + Vector3.right;
 
-    private void ResetStuckState()
-    {
-        stuckTimer = 0f;
-        checkTimer = 0f;
-        isAvoiding = false;
-        avoidanceTimer = 0f;
-        avoidanceTarget = Vector3.zero;
-        originalTargetDirection = Vector3.zero;
-        lastPosition = transform.position;
+        BoxCollider2D collider = building.GetComponent<BoxCollider2D>();
+        if (collider != null)
+        {
+            Bounds bounds = collider.bounds;
+
+            Vector3[] approachPoints = new Vector3[]
+            {
+                new Vector3(bounds.min.x + 0.3f, bounds.min.y, 0),
+                new Vector3(bounds.max.x - 0.3f, bounds.min.y, 0),
+                new Vector3(bounds.center.x, bounds.min.y, 0)
+            };
+
+            Vector3 bestPoint = approachPoints[2];
+            float bestScore = float.MaxValue;
+
+            foreach (Vector3 point in approachPoints)
+            {
+                float distance = Vector3.Distance(transform.position, point);
+                float clearance = GetPointClearance(point);
+                float score = distance * 0.7f + (10f - clearance) * 0.3f;
+
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestPoint = point;
+                }
+            }
+
+            // Смещение от здания
+            Vector3 toColonist = (transform.position - bestPoint).normalized;
+            return bestPoint + toColonist * 0.3f;
+        }
+
+        return building.position + new Vector3(0, -1f, 0);
     }
 
     #endregion
 
-    #region ВИЗУАЛЫ
+    #region ПУБЛИЧНЫЕ МЕТОДЫ (с добавлением AddCarriedResource)
+
+    public void AssignToBuilding(Transform building)
+    {
+        if (building == null) return;
+
+        // Если уже назначен на это здание - ничего не делаем
+        if (targetBuilding == building && currentState != ColonistState.Idle)
+        {
+            return;
+        }
+
+        targetBuilding = building;
+        currentState = ColonistState.MovingToBuilding;
+
+        // Сбрасываем все состояния
+        currentPath.Clear();
+        currentPathIndex = 0;
+        pathUpdateTimer = pathUpdateInterval;
+        isStuck = false;
+        stuckTimer = 0f;
+
+        Debug.Log($"{name} назначен на здание {building.name}");
+    }
+
+    public void UnassignFromBuilding()
+    {
+        if (targetBuilding == null) return;
+
+        Debug.Log($"{name} снят с здания {targetBuilding.name}");
+        targetBuilding = null;
+        currentState = ColonistState.Idle;
+        currentPath.Clear();
+    }
+
+    // ДОБАВЛЯЕМ ОБРАТНО МЕТОД AddCarriedResource для совместимости с дочерними классами
+    public void AddCarriedResource(string resourceType, int amount)
+    {
+        switch (resourceType.ToLower())
+        {
+            case "warmleaf":
+                carriedWarmleaf += amount;
+                Debug.Log($"{name} получил {amount} теплолиста. Всего: {carriedWarmleaf}");
+                break;
+            case "thunderite":
+                carriedThunderite += amount;
+                Debug.Log($"{name} получил {amount} грозалита. Всего: {carriedThunderite}");
+                break;
+            case "mirallite":
+                carriedMirallite += amount;
+                Debug.Log($"{name} получил {amount} мираллита. Всего: {carriedMirallite}");
+                break;
+            default:
+                Debug.LogWarning($"{name}: неизвестный тип ресурса '{resourceType}'");
+                break;
+        }
+    }
+
+    public int GetCarriedResourceCount(string resourceType)
+    {
+        return resourceType.ToLower() switch
+        {
+            "warmleaf" => carriedWarmleaf,
+            "thunderite" => carriedThunderite,
+            "mirallite" => carriedMirallite,
+            _ => 0
+        };
+    }
+
+    public bool IsWorking() => currentState != ColonistState.Idle;
+    public ColonistState GetCurrentState() => currentState;
+
+    #endregion
+
+    #region ВИЗУАЛИЗАЦИЯ И ОТЛАДКА
 
     protected virtual void UpdateVisuals()
     {
         if (spriteRenderer == null) return;
 
-        if (isAvoiding)
+        if (isStuck)
         {
-            // Синий при обходе (не к целевому зданию)
-            float alpha = Mathf.PingPong(Time.time * 3f, 0.2f) + 0.8f;
-            spriteRenderer.color = new Color(0.7f, 0.7f, 1f, alpha);
+            // Мигающий красный при застревании
+            float pulse = Mathf.PingPong(Time.time * 3f, 1f);
+            spriteRenderer.color = Color.Lerp(Color.red, Color.yellow, pulse);
         }
-        else if (stuckTimer > stuckTimeThreshold * 0.5f &&
-                (currentState == ColonistState.MovingToBuilding ||
-                 currentState == ColonistState.ReturningToWork))
+        else if (isAvoiding)
         {
-            // Оранжевый при застревании на пути к целевому зданию
-            float t = Mathf.Clamp01(stuckTimer / stuckTimeThreshold);
-            spriteRenderer.color = Color.Lerp(Color.white, new Color(1f, 0.5f, 0f), t);
+            // Желтый при обходе
+            spriteRenderer.color = Color.Lerp(Color.white, Color.yellow, 0.5f);
         }
-        else if (currentState == ColonistState.MovingToBuilding ||
-                currentState == ColonistState.ReturningToWork)
+        else if (currentPath.Count > 0)
         {
-            // Зеленый при движении к целевому зданию
-            float distanceToTarget = Vector3.Distance(transform.position, targetPosition);
-            float intensity = Mathf.Clamp01(1f - (distanceToTarget / 10f));
-            spriteRenderer.color = Color.Lerp(Color.white, new Color(0.5f, 1f, 0.5f), intensity);
+            // Голубой при следовании по пути
+            spriteRenderer.color = Color.Lerp(Color.white, Color.cyan, 0.3f);
         }
         else
         {
@@ -444,21 +828,44 @@ public class ColonistWorker : MonoBehaviour
         }
     }
 
-    #endregion
-
-    #region ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
-
-    protected virtual void SetTargetPosition(Vector3 position)
+    void OnDrawGizmosSelected()
     {
-        targetPosition = position;
-        ResetStuckState();
+        if (!Application.isPlaying) return;
 
-        if (currentState == ColonistState.MovingToBuilding ||
-            currentState == ColonistState.ReturningToWork)
+        // Путь
+        Gizmos.color = pathDebugColor;
+        for (int i = 0; i < currentPath.Count; i++)
         {
-            originalTargetDirection = (targetPosition - transform.position).normalized;
+            Gizmos.DrawSphere(currentPath[i], 0.1f);
+            if (i < currentPath.Count - 1)
+            {
+                Gizmos.DrawLine(currentPath[i], currentPath[i + 1]);
+            }
+        }
+
+        // Зона застревания
+        if (isStuck)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(stuckStartPosition, 0.5f);
+            Gizmos.DrawLine(transform.position, stuckStartPosition);
+        }
+
+        // История позиций для обнаружения застревания
+        Gizmos.color = new Color(1, 0.5f, 0, 0.5f);
+        for (int i = 0; i < stuckCheckPositions.Length - 1; i++)
+        {
+            if (stuckCheckPositions[i] != Vector3.zero && stuckCheckPositions[i + 1] != Vector3.zero)
+            {
+                Gizmos.DrawLine(stuckCheckPositions[i], stuckCheckPositions[i + 1]);
+                Gizmos.DrawSphere(stuckCheckPositions[i], 0.05f);
+            }
         }
     }
+
+    #endregion
+
+    #region БАЗОВЫЕ МЕТОДЫ
 
     protected virtual void FindMainBuilding()
     {
@@ -466,17 +873,32 @@ public class ColonistWorker : MonoBehaviour
         if (mainBuildingObj != null)
         {
             mainBuilding = mainBuildingObj.transform;
-            Debug.Log($"{name} нашел главное здание");
         }
-        else
+    }
+
+    protected virtual IEnumerator InteractWithBuilding()
+    {
+        if (visualObject != null)
         {
-            Debug.LogError($"{name}: главное здание не найдено (тег MainBuilding)");
+            visualObject.SetActive(false);
         }
+
+        float interactionTime = GetInteractionTime();
+        yield return new WaitForSeconds(interactionTime);
+
+        CollectResourcesFromBuilding();
+
+        if (visualObject != null)
+        {
+            visualObject.SetActive(true);
+        }
+
+        currentState = ColonistState.Idle;
     }
 
     protected virtual float GetInteractionTime()
     {
-        return 3f; // Базовая длительность
+        return 3f;
     }
 
     protected virtual void CollectResourcesFromBuilding()
@@ -496,141 +918,98 @@ public class ColonistWorker : MonoBehaviour
         if (carriedWarmleaf > 0)
         {
             resourceManager.AddResource("warmleaf", carriedWarmleaf);
-            Debug.Log($"{name} сдал {carriedWarmleaf} теплолиста");
             carriedWarmleaf = 0;
         }
 
         if (carriedThunderite > 0)
         {
             resourceManager.AddResource("thunderite", carriedThunderite);
-            Debug.Log($"{name} сдал {carriedThunderite} грозалита");
             carriedThunderite = 0;
         }
 
         if (carriedMirallite > 0)
         {
             resourceManager.AddResource("mirallite", carriedMirallite);
-            Debug.Log($"{name} сдал {carriedMirallite} мираллита");
             carriedMirallite = 0;
         }
     }
 
-    #endregion
-
-    #region ПУБЛИЧНЫЕ МЕТОДЫ
-
-    public void AssignToBuilding(Transform building)
+    // Вспомогательные методы для пути
+    private Vector3 CalculateOptimalAvoidance(Vector3 start, Vector3 target, Vector3 obstacle)
     {
-        if (building == null) return;
-        targetBuilding = building;
-        ResetStuckState();
-
-        if (building != null)
-        {
-            originalTargetDirection = (GetBuildingBottomCenter(building) - transform.position).normalized;
-        }
+        Vector3 toTarget = (target - start).normalized;
+        Vector3 perpendicular = new Vector3(-toTarget.y, toTarget.x, 0);
+        float rightClearance = CheckDirectionClearance(perpendicular);
+        float leftClearance = CheckDirectionClearance(-perpendicular);
+        return (rightClearance >= leftClearance) ? perpendicular : -perpendicular;
     }
 
-    public void UnassignFromBuilding()
+    private Vector3 CalculateSimpleAvoidancePoint(Vector3 start, Vector3 target)
     {
-        targetBuilding = null;
-        currentState = ColonistState.Idle;
-        ResetStuckState();
+        Vector3 direction = (target - start).normalized;
+        Vector3 perpendicular = new Vector3(-direction.y, direction.x, 0);
+        return start + perpendicular * buildingAvoidanceRadius;
     }
 
-    public bool IsWorking() => currentState != ColonistState.Idle;
-    public ColonistState GetCurrentState() => currentState;
-
-    public void AddCarriedResource(string resourceType, int amount)
+    private Vector3 FindMainObstacle(Vector3 start, Vector3 target)
     {
-        switch (resourceType.ToLower())
+        Vector3 direction = (target - start).normalized;
+        float distance = Vector3.Distance(start, target);
+        RaycastHit2D hit = Physics2D.Raycast(start, direction, distance, buildingLayer | obstacleLayer);
+
+        if (hit.collider != null && hit.collider.gameObject != gameObject &&
+            hit.collider.transform != targetBuilding && hit.collider.transform != mainBuilding)
         {
-            case "warmleaf":
-                carriedWarmleaf += amount;
-                break;
-            case "thunderite":
-                carriedThunderite += amount;
-                break;
-            case "mirallite":
-                carriedMirallite += amount;
-                break;
+            return hit.point;
         }
 
-        Debug.Log($"{name} получил {amount} {resourceType}");
+        return Vector3.zero;
     }
 
-    public int GetCarriedResourceCount(string resourceType)
+    private Vector3 CalculateAvoidanceDirection(Vector3 moveDirection, Vector3 obstacleNormal)
     {
-        return resourceType.ToLower() switch
-        {
-            "warmleaf" => carriedWarmleaf,
-            "thunderite" => carriedThunderite,
-            "mirallite" => carriedMirallite,
-            _ => 0
-        };
+        Vector3 perpendicular1 = new Vector3(-moveDirection.y, moveDirection.x, 0);
+        Vector3 perpendicular2 = new Vector3(moveDirection.y, -moveDirection.x, 0);
+        float clearance1 = CheckDirectionClearance(perpendicular1);
+        float clearance2 = CheckDirectionClearance(perpendicular2);
+        Vector3 avoidanceDirection = (clearance1 >= clearance2) ? perpendicular1 : perpendicular2;
+        return Vector3.Lerp(moveDirection, avoidanceDirection, 0.7f).normalized;
     }
 
-    #endregion
-
-    #region GIZMOS ДЛЯ ОТЛАДКИ
-
-    void OnDrawGizmos()
+    private void SmoothPath()
     {
-        if (!Application.isPlaying) return;
+        if (currentPath.Count < 3) return;
+        List<Vector3> smoothedPath = new List<Vector3> { currentPath[0] };
 
-        // Показываем точку входа для целевого здания
-        if (targetBuilding != null &&
-            (currentState == ColonistState.MovingToBuilding ||
-             currentState == ColonistState.ReturningToWork))
+        for (int i = 1; i < currentPath.Count - 1; i++)
         {
-            Vector3 entrancePoint = GetBuildingBottomCenter(targetBuilding);
-
-            // Красный крест для точки входа
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(entrancePoint + Vector3.left * 0.3f, entrancePoint + Vector3.right * 0.3f);
-            Gizmos.DrawLine(entrancePoint + Vector3.down * 0.3f, entrancePoint + Vector3.up * 0.3f);
-
-            // Также рисуем границы BoxCollider2D
-            BoxCollider2D collider = targetBuilding.GetComponent<BoxCollider2D>();
-            if (collider != null)
+            if (!IsPathClear(smoothedPath[smoothedPath.Count - 1], currentPath[i + 1]))
             {
-                Gizmos.color = new Color(1, 0, 0, 0.3f);
-                Gizmos.DrawWireCube(collider.bounds.center, collider.bounds.size);
+                smoothedPath.Add(currentPath[i]);
             }
         }
+
+        smoothedPath.Add(currentPath[currentPath.Count - 1]);
+        currentPath = smoothedPath;
     }
 
-    void OnDrawGizmosSelected()
+    private float GetPointClearance(Vector3 point)
     {
-        if (!Application.isPlaying) return;
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(point, 0.5f, obstacleLayer | buildingLayer);
+        float clearance = 1f;
 
-        // Линия к цели
-        if (currentState == ColonistState.MovingToBuilding ||
-            currentState == ColonistState.MovingToMainBuilding ||
-            currentState == ColonistState.ReturningToWork)
+        foreach (var collider in colliders)
         {
-            // Цвет в зависимости от состояния
-            if (currentState == ColonistState.MovingToBuilding ||
-                currentState == ColonistState.ReturningToWork)
+            if (collider.gameObject != gameObject &&
+                collider.transform != targetBuilding &&
+                collider.transform != mainBuilding)
             {
-                Gizmos.color = Color.green;
-            }
-            else
-            {
-                Gizmos.color = isAvoiding ? Color.red : Color.yellow;
-            }
-
-            Gizmos.DrawLine(transform.position, targetPosition);
-            Gizmos.DrawWireSphere(targetPosition, 0.2f);
-
-            // Точка обхода
-            if (isAvoiding)
-            {
-                Gizmos.color = Color.magenta;
-                Gizmos.DrawLine(transform.position, avoidanceTarget);
-                Gizmos.DrawWireSphere(avoidanceTarget, 0.15f);
+                float distance = Vector3.Distance(point, collider.transform.position);
+                clearance = Mathf.Min(clearance, distance);
             }
         }
+
+        return clearance;
     }
 
     #endregion

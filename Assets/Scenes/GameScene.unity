@@ -5688,6 +5688,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ThermalLeaf
       objectReference: {fileID: 0}
+    - target: {fileID: 2341766914534820261, guid: 9753519928bbc2043b4a8800149e539f, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 2459171492263954725, guid: 9753519928bbc2043b4a8800149e539f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 7.46
@@ -5755,6 +5759,10 @@ PrefabInstance:
     - target: {fileID: 7830924588482087500, guid: 9753519928bbc2043b4a8800149e539f, type: 3}
       propertyPath: offsetLeft
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7830924588482087500, guid: 9753519928bbc2043b4a8800149e539f, type: 3}
+      propertyPath: clickReward
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 7830924588482087500, guid: 9753519928bbc2043b4a8800149e539f, type: 3}
       propertyPath: offsetRight
@@ -6234,13 +6242,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: MainTower
       objectReference: {fileID: 0}
+    - target: {fileID: 2625982372206836141, guid: 3ccf50723b9aeff42bdde0e38aa27d83, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2625982372206836141, guid: 3ccf50723b9aeff42bdde0e38aa27d83, type: 3}
+      propertyPath: m_TagString
+      value: MainBuilding
+      objectReference: {fileID: 0}
     - target: {fileID: 2787333276301793254, guid: 3ccf50723b9aeff42bdde0e38aa27d83, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.4051228
+      value: -2.98
       objectReference: {fileID: 0}
     - target: {fileID: 2787333276301793254, guid: 3ccf50723b9aeff42bdde0e38aa27d83, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.28665638
+      value: 0.52
       objectReference: {fileID: 0}
     - target: {fileID: 2787333276301793254, guid: 3ccf50723b9aeff42bdde0e38aa27d83, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8786,6 +8802,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Thunderite
       objectReference: {fileID: 0}
+    - target: {fileID: 3510216867493224698, guid: ed218032c30a05e49bc890d86be187a3, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 7403589330166976868, guid: ed218032c30a05e49bc890d86be187a3, type: 3}
       propertyPath: m_SortingOrder
       value: 0
@@ -8837,6 +8857,10 @@ PrefabInstance:
     - target: {fileID: 8743373084503985424, guid: ed218032c30a05e49bc890d86be187a3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9115094662632619528, guid: ed218032c30a05e49bc890d86be187a3, type: 3}
+      propertyPath: clickReward
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 9115094662632619528, guid: ed218032c30a05e49bc890d86be187a3, type: 3}
       propertyPath: collectSound
@@ -10059,11 +10083,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 261915574296334775, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 7.49
+      value: 4.63
       objectReference: {fileID: 0}
     - target: {fileID: 261915574296334775, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.4978
+      value: 2.4
       objectReference: {fileID: 0}
     - target: {fileID: 261915574296334775, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
       propertyPath: m_LocalPosition.z
@@ -10105,6 +10129,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mirallite
       objectReference: {fileID: 0}
+    - target: {fileID: 8390117050541031421, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
+      propertyPath: m_Layer
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 8745763847272144936, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
       propertyPath: gridSize.x
       value: 2
@@ -10112,6 +10140,10 @@ PrefabInstance:
     - target: {fileID: 8745763847272144936, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
       propertyPath: gridSize.y
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8745763847272144936, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
+      propertyPath: clickReward
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 8745763847272144936, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
       propertyPath: collectSound
