@@ -12,7 +12,6 @@ public class TechnologyManager : MonoBehaviour
     {
         public string resourceId;      // "warmleaf", "thunderite", "mirallite"
         public int amountPerLevel;     // Количество ресурса за уровень
-        public float consumptionRate;  // Скорость потребления в секунду
     }
 
     [System.Serializable]
@@ -22,25 +21,30 @@ public class TechnologyManager : MonoBehaviour
         public string id;                      // Уникальный ID
         public string displayName;             // Отображаемое имя
         public string description;             // Описание для UI
-        public int maxLevel = 20;              // Максимальный уровень
+        public int maxLevel = 10;              // Максимальный уровень
         public int currentLevel = 0;           // Текущий уровень
-        public float currentProgress = 0f;     // Текущий прогресс (0-100)
-        public float requiredProgress = 100f;  // Необходимый прогресс для уровня
-        public bool isResearching = false;     // Исследуется ли сейчас
-        public bool isUnlocked = false;        // Разблокирована ли технология
+
+        [Header("Прогресс исследования")]
+        public int resourcesPerLevel = 20;     // Сколько ресурсов нужно на 1 уровень
+        public int collectedResources = 0;     // Сколько уже собрано для текущего уровня
+        public float currentProgress = 0f;     // Процент прогресса (0-100)
+        public bool isResearching = false;
+        public bool isUnlocked = false;
 
         [Header("Требования")]
         public List<ResearchRequirement> requirements = new List<ResearchRequirement>();
 
-        [Header("Скорость исследования")]
-        public float colonistSpeedMultiplier = 0.1f; // +10% скорости за каждого исследователя
-
         [Header("Бонусы")]
         public int clickWarmleafBonus = 0;     // +X теплолиста за клик
         public int clickMiralliteBonus = 0;    // +X мираллита за клик
+        public int clickThunderiteBonus = 0;   // +X грозалита за клик
         public int workerWarmleafBonus = 0;    // +X теплолиста за цикл рабочего
         public int workerThunderiteBonus = 0;  // +X грозалита за цикл рабочего
         public int workerMiralliteBonus = 0;   // +X мираллита за цикл рабочего
+        public int carryCapacityBonus = 0;     // +X к вместимости рюкзака
+        public int colonistSpeedBonus = 0;     // +X% скорости колонистов
+        public int colonistCapacityBonus = 0;  // +X вместимость жилища
+        public int researchSpeedBonus = 0;     // +X% скорости исследования
     }
 
     [Header("Все технологии")]
@@ -54,19 +58,13 @@ public class TechnologyManager : MonoBehaviour
     public TextMeshProUGUI descriptionText;
     public TextMeshProUGUI levelText;
     public TextMeshProUGUI progressText;
+    public TextMeshProUGUI resourcesText;
     public TextMeshProUGUI requirementsText;
     public TextMeshProUGUI statusText;
-    public TextMeshProUGUI colonistsText;
     public Slider progressSlider;
     public Button researchButton;
     public Button closeButton;
     public GameObject researchActiveIndicator;
-
-    [Header("Настройки исследования")]
-    [SerializeField] private float baseResearchSpeed = 1f; // Базовый прогресс в секунду
-
-    // Текущие потребляемые ресурсы
-    private Dictionary<string, float> consumedResources = new Dictionary<string, float>();
 
     [Header("Уведомления")]
     [SerializeField] private float notificationDuration = 3f;
@@ -88,7 +86,7 @@ public class TechnologyManager : MonoBehaviour
 
     void Start()
     {
-        // Создаем технологии если список пуст
+        // Создаем базовые технологии если список пуст
         if (allTechnologies.Count == 0)
         {
             CreateBasicTechnologies();
@@ -99,82 +97,79 @@ public class TechnologyManager : MonoBehaviour
         LoadTechnologyProgress();
     }
 
-    void Update()
-    {
-        // Если есть активное исследование и исследователи
-        if (selectedTechnology != null &&
-            selectedTechnology.isResearching &&
-            selectedTechnology.currentLevel < selectedTechnology.maxLevel &&
-            activeResearchers > 0)
-        {
-            UpdateResearchProgress();
-        }
-
-        // Обновляем UI
-        if (Time.frameCount % 6 == 0)
-        {
-            UpdateTechnologyUI();
-        }
-    }
-
     void CreateBasicTechnologies()
     {
-        // 1. Капитанский топор (требует теплолист)
+        // 1. Капитанский топор
         var captainAxe = new Technology
         {
             id = "captain_axe",
             displayName = "Капитанский топор",
             description = "+1 теплолиста за каждый клик игрока",
             maxLevel = 20,
+            resourcesPerLevel = 20,
             clickWarmleafBonus = 1,
-            isUnlocked = true,
-            colonistSpeedMultiplier = 0.1f
+            isUnlocked = true
         };
         captainAxe.requirements.Add(new ResearchRequirement
         {
             resourceId = "warmleaf",
-            amountPerLevel = 10,
-            consumptionRate = 0.5f
+            amountPerLevel = 20
         });
         allTechnologies.Add(captainAxe);
 
-        // 2. Сбор образцов (требует мираллит)
+        // 2. Сбор образцов
         var sampleCollection = new Technology
         {
             id = "sample_collection",
             displayName = "Сбор образцов",
             description = "+1 мираллита за каждый клик игрока",
             maxLevel = 20,
+            resourcesPerLevel = 25,
             clickMiralliteBonus = 1,
-            isUnlocked = true,
-            colonistSpeedMultiplier = 0.15f
+            isUnlocked = true
         };
         sampleCollection.requirements.Add(new ResearchRequirement
         {
             resourceId = "mirallite",
-            amountPerLevel = 15,
-            consumptionRate = 0.3f
+            amountPerLevel = 25
         });
         allTechnologies.Add(sampleCollection);
 
-        // 3. Автоматизация лесоповала (требует теплолист)
-        var autoLumber = new Technology
+        // 3. Увеличенные рюкзаки
+        var bigBackpacks = new Technology
         {
-            id = "auto_lumber",
-            displayName = "Автоматизация лесоповала",
-            description = "+1 теплолиста за рабочий цикл",
-            maxLevel = 10,
-            workerWarmleafBonus = 1,
-            isUnlocked = true,
-            colonistSpeedMultiplier = 0.12f
+            id = "big_backpacks",
+            displayName = "Увеличенные рюкзаки",
+            description = "+1 к вместимости рюкзака исследователей",
+            maxLevel = 5,
+            resourcesPerLevel = 30,
+            carryCapacityBonus = 1,
+            isUnlocked = true
         };
-        autoLumber.requirements.Add(new ResearchRequirement
+        bigBackpacks.requirements.Add(new ResearchRequirement
         {
             resourceId = "warmleaf",
-            amountPerLevel = 20,
-            consumptionRate = 0.4f
+            amountPerLevel = 30
         });
-        allTechnologies.Add(autoLumber);
+        allTechnologies.Add(bigBackpacks);
+
+        // 4. Быстрые ноги
+        var fastFeet = new Technology
+        {
+            id = "fast_feet",
+            displayName = "Быстрые ноги",
+            description = "+5% скорости колонистов",
+            maxLevel = 10,
+            resourcesPerLevel = 40,
+            colonistSpeedBonus = 5,
+            isUnlocked = true
+        };
+        fastFeet.requirements.Add(new ResearchRequirement
+        {
+            resourceId = "warmleaf",
+            amountPerLevel = 40
+        });
+        allTechnologies.Add(fastFeet);
     }
 
     void SetupUI()
@@ -204,11 +199,6 @@ public class TechnologyManager : MonoBehaviour
         {
             researchActiveIndicator.SetActive(false);
         }
-
-        // Инициализируем словарь потребляемых ресурсов
-        consumedResources["warmleaf"] = 0f;
-        consumedResources["thunderite"] = 0f;
-        consumedResources["mirallite"] = 0f;
     }
 
     public void SelectTechnology(string techId)
@@ -228,67 +218,6 @@ public class TechnologyManager : MonoBehaviour
         else
         {
             Debug.LogWarning($"Технология с ID '{techId}' не найдена!");
-        }
-    }
-
-    private void UpdateResearchProgress()
-    {
-        if (selectedTechnology == null || !selectedTechnology.isResearching) return;
-        if (activeResearchers <= 0) return;
-
-        // Рассчитываем скорость исследования с учетом колонистов
-        float researchSpeed = baseResearchSpeed * (1 + (activeResearchers * selectedTechnology.colonistSpeedMultiplier));
-
-        // Создаем копию ключей для безопасного перебора
-        List<string> resourceKeys = new List<string>(consumedResources.Keys);
-
-        foreach (var resourceId in resourceKeys)
-        {
-            // Находим требование для этого ресурса
-            ResearchRequirement requirement = null;
-            foreach (var req in selectedTechnology.requirements)
-            {
-                if (req.resourceId == resourceId)
-                {
-                    requirement = req;
-                    break;
-                }
-            }
-
-            if (requirement == null) continue;
-
-            // Накапливаем потребление
-            consumedResources[resourceId] += requirement.consumptionRate * Time.deltaTime * activeResearchers;
-
-            // Если накопилось достаточно для списания
-            if (consumedResources[resourceId] >= 1f)
-            {
-                int amountToConsume = Mathf.FloorToInt(consumedResources[resourceId]);
-
-                if (ResourceManager.Instance != null &&
-                    ResourceManager.Instance.TrySpendResource(resourceId, amountToConsume))
-                {
-                    consumedResources[resourceId] -= amountToConsume;
-
-                    // Добавляем прогресс пропорционально потраченному ресурсу
-                    float progressPerResource = researchSpeed / requirement.amountPerLevel;
-                    selectedTechnology.currentProgress += progressPerResource * amountToConsume;
-
-                    // Если прогресс достиг 100%
-                    if (selectedTechnology.currentProgress >= selectedTechnology.requiredProgress)
-                    {
-                        LevelUpTechnology(selectedTechnology);
-                        return; // Выходим после повышения уровня
-                    }
-                }
-                else
-                {
-                    // Не удалось списать ресурс
-                    StopResearch();
-                    ShowNotification("Исследование приостановлено: недостаточно ресурсов");
-                    return;
-                }
-            }
         }
     }
 
@@ -336,13 +265,8 @@ public class TechnologyManager : MonoBehaviour
         }
 
         selectedTechnology.isResearching = true;
-
-        // Сбрасываем накопленные ресурсы (безопасно)
-        List<string> keys = new List<string>(consumedResources.Keys);
-        foreach (var key in keys)
-        {
-            consumedResources[key] = 0f;
-        }
+        selectedTechnology.collectedResources = 0;
+        selectedTechnology.currentProgress = 0f;
 
         if (researchActiveIndicator != null)
         {
@@ -381,6 +305,15 @@ public class TechnologyManager : MonoBehaviour
         Debug.Log($"Исследование остановлено: {selectedTechnology.displayName}");
     }
 
+    void Update()
+    {
+        // Обновляем UI каждые 0.1 секунды
+        if (Time.frameCount % 6 == 0)
+        {
+            UpdateTechnologyUI();
+        }
+    }
+
     void UpdateTechnologyUI()
     {
         if (selectedTechnology == null) return;
@@ -398,7 +331,12 @@ public class TechnologyManager : MonoBehaviour
 
         if (progressText != null)
         {
-            progressText.text = $"Прогресс: {selectedTechnology.currentProgress:F1}/{selectedTechnology.requiredProgress}";
+            progressText.text = $"Прогресс: {selectedTechnology.currentProgress:F1}%";
+        }
+
+        if (resourcesText != null)
+        {
+            resourcesText.text = $"Ресурсы: {selectedTechnology.collectedResources}/{selectedTechnology.resourcesPerLevel}";
         }
 
         if (requirementsText != null)
@@ -416,7 +354,7 @@ public class TechnologyManager : MonoBehaviour
         {
             if (selectedTechnology.isResearching)
             {
-                statusText.text = $"Статус: Исследуется ({activeResearchers} исследователей)";
+                statusText.text = $"Статус: Исследуется";
                 statusText.color = Color.green;
             }
             else if (selectedTechnology.currentLevel >= selectedTechnology.maxLevel)
@@ -436,16 +374,10 @@ public class TechnologyManager : MonoBehaviour
             }
         }
 
-        if (colonistsText != null)
-        {
-            colonistsText.text = $"Исследователей: {activeResearchers}\n" +
-                                $"Скорость: +{selectedTechnology.colonistSpeedMultiplier * 100:F0}% за каждого";
-        }
-
         // Обновляем прогресс бар
         if (progressSlider != null)
         {
-            float progressPercentage = selectedTechnology.currentProgress / selectedTechnology.requiredProgress;
+            float progressPercentage = selectedTechnology.currentProgress / 100f;
             progressSlider.value = Mathf.Clamp01(progressPercentage);
         }
 
@@ -479,9 +411,51 @@ public class TechnologyManager : MonoBehaviour
         }
     }
 
+    // МЕТОД ДЛЯ ИССЛЕДОВАТЕЛЕЙ: колонист принес ресурс на станцию
+    public bool DeliverResearchResource(string resourceId, int amount)
+    {
+        if (selectedTechnology == null || !selectedTechnology.isResearching) return false;
+        if (amount <= 0) return false;
+
+        // Проверяем нужен ли этот ресурс
+        bool resourceNeeded = false;
+        foreach (var req in selectedTechnology.requirements)
+        {
+            if (req.resourceId == resourceId)
+            {
+                resourceNeeded = true;
+                break;
+            }
+        }
+
+        if (!resourceNeeded) return false;
+
+        // Добавляем ресурсы
+        selectedTechnology.collectedResources += amount;
+
+        // Пересчитываем прогресс: (собрано / нужно) * 100%
+        selectedTechnology.currentProgress =
+            (float)selectedTechnology.collectedResources / selectedTechnology.resourcesPerLevel * 100f;
+
+        // Если прогресс > 100%, корректируем
+        if (selectedTechnology.currentProgress > 100f)
+        {
+            selectedTechnology.currentProgress = 100f;
+        }
+
+        // Если собрали достаточно
+        if (selectedTechnology.collectedResources >= selectedTechnology.resourcesPerLevel)
+        {
+            LevelUpTechnology(selectedTechnology);
+        }
+
+        return true;
+    }
+
     void LevelUpTechnology(Technology tech)
     {
         tech.currentLevel++;
+        tech.collectedResources = 0;
         tech.currentProgress = 0f;
         tech.isResearching = false;
 
@@ -502,80 +476,31 @@ public class TechnologyManager : MonoBehaviour
         {
             researchActiveIndicator.SetActive(false);
         }
-
-        // Разблокируем связанные технологии
-        UnlockRelatedTechnologies(tech);
     }
 
     void ApplyTechnologyBonuses(Technology tech)
     {
         Debug.Log($"Технология '{tech.displayName}' повышена до уровня {tech.currentLevel}");
 
-        // Специальные разблокировки
-        if (tech.id == "geo_research" && tech.currentLevel >= 1)
+        // Применяем бонусы ко всем исследователям
+        if (tech.carryCapacityBonus > 0)
         {
-            UnlockTechnology("pneumatic_picks");
-            ShowNotification("Грозалит разблокирован! Можно исследовать Пневматические кирки.");
+            ApplyCarryCapacityBonus(tech.carryCapacityBonus);
         }
+
+        // Можно добавить другие бонусы здесь
     }
 
-    void UnlockRelatedTechnologies(Technology tech)
+    // Метод для применения бонуса вместимости
+    private void ApplyCarryCapacityBonus(int bonus)
     {
-        switch (tech.id)
+        // Находим всех исследователей и увеличиваем им вместимость
+        ResearchStationWorker[] researchers = FindObjectsOfType<ResearchStationWorker>();
+        foreach (var researcher in researchers)
         {
-            case "captain_axe":
-                if (tech.currentLevel >= 5) UnlockTechnology("auto_lumber");
-                break;
-            case "sample_collection":
-                if (tech.currentLevel >= 3) UnlockTechnology("strong_connections");
-                break;
+            researcher.IncreaseCarryCapacity(bonus);
         }
-    }
-
-    void UnlockTechnology(string techId)
-    {
-        Technology tech = allTechnologies.Find(t => t.id == techId);
-        if (tech != null && !tech.isUnlocked)
-        {
-            tech.isUnlocked = true;
-            ShowNotification($"Разблокирована технология: {tech.displayName}");
-        }
-    }
-
-    // МЕТОД ДЛЯ ИССЛЕДОВАТЕЛЕЙ: колонист принес ресурс на станцию
-    public bool DeliverResearchResource(string resourceId, int amount)
-    {
-        if (selectedTechnology == null || !selectedTechnology.isResearching) return false;
-        if (amount <= 0) return false;
-
-        // Проверяем нужен ли этот ресурс для текущего исследования
-        bool resourceNeeded = false;
-        ResearchRequirement requirement = null;
-
-        foreach (var req in selectedTechnology.requirements)
-        {
-            if (req.resourceId == resourceId)
-            {
-                resourceNeeded = true;
-                requirement = req;
-                break;
-            }
-        }
-
-        if (!resourceNeeded || requirement == null) return false;
-
-        // Добавляем прогресс
-        float researchSpeed = baseResearchSpeed * (1 + (activeResearchers * selectedTechnology.colonistSpeedMultiplier));
-        float progressPerResource = researchSpeed / requirement.amountPerLevel;
-        selectedTechnology.currentProgress += progressPerResource * amount;
-
-        // Если прогресс достиг 100%
-        if (selectedTechnology.currentProgress >= selectedTechnology.requiredProgress)
-        {
-            LevelUpTechnology(selectedTechnology);
-        }
-
-        return true;
+        Debug.Log($"Применен бонус вместимости +{bonus} к {researchers.Length} исследователям");
     }
 
     // Регистрация исследователей
@@ -583,14 +508,12 @@ public class TechnologyManager : MonoBehaviour
     {
         activeResearchers++;
         Debug.Log($"Зарегистрирован исследователь. Всего: {activeResearchers}");
-        UpdateTechnologyUI();
     }
 
     public void UnregisterResearcher()
     {
         activeResearchers = Mathf.Max(0, activeResearchers - 1);
         Debug.Log($"Удален исследователь. Всего: {activeResearchers}");
-        UpdateTechnologyUI();
     }
 
     void SaveTechnologyProgress()
@@ -598,6 +521,7 @@ public class TechnologyManager : MonoBehaviour
         foreach (var tech in allTechnologies)
         {
             PlayerPrefs.SetInt($"tech_{tech.id}_level", tech.currentLevel);
+            PlayerPrefs.SetInt($"tech_{tech.id}_collected", tech.collectedResources);
             PlayerPrefs.SetFloat($"tech_{tech.id}_progress", tech.currentProgress);
             PlayerPrefs.SetInt($"tech_{tech.id}_researching", tech.isResearching ? 1 : 0);
             PlayerPrefs.SetInt($"tech_{tech.id}_unlocked", tech.isUnlocked ? 1 : 0);
@@ -611,6 +535,7 @@ public class TechnologyManager : MonoBehaviour
         foreach (var tech in allTechnologies)
         {
             tech.currentLevel = PlayerPrefs.GetInt($"tech_{tech.id}_level", 0);
+            tech.collectedResources = PlayerPrefs.GetInt($"tech_{tech.id}_collected", 0);
             tech.currentProgress = PlayerPrefs.GetFloat($"tech_{tech.id}_progress", 0f);
             tech.isResearching = PlayerPrefs.GetInt($"tech_{tech.id}_researching", 0) == 1;
             tech.isUnlocked = PlayerPrefs.GetInt($"tech_{tech.id}_unlocked", tech.isUnlocked ? 1 : 0) == 1;
@@ -677,8 +602,6 @@ public class TechnologyManager : MonoBehaviour
         return null;
     }
 
-    public int GetActiveResearchersCount() => activeResearchers;
-
     #endregion
 
     #region УТИЛИТЫ
@@ -702,7 +625,8 @@ public class TechnologyManager : MonoBehaviour
         {
             string researching = tech.isResearching ? " [ИССЛЕДУЕТСЯ]" : "";
             string unlocked = tech.isUnlocked ? "" : " [ЗАБЛОКИРОВАНО]";
-            Debug.Log($"{tech.displayName}: Ур. {tech.currentLevel}/{tech.maxLevel}, Прогресс: {tech.currentProgress:F1}%{researching}{unlocked}");
+            Debug.Log($"{tech.displayName}: Ур. {tech.currentLevel}/{tech.maxLevel}, " +
+                     $"Ресурсы: {tech.collectedResources}/{tech.resourcesPerLevel}{researching}{unlocked}");
         }
     }
 
@@ -711,9 +635,10 @@ public class TechnologyManager : MonoBehaviour
         foreach (var tech in allTechnologies)
         {
             tech.currentLevel = 0;
+            tech.collectedResources = 0;
             tech.currentProgress = 0f;
             tech.isResearching = false;
-            tech.isUnlocked = true; // Сброс на изначальные разблокировки
+            tech.isUnlocked = true;
         }
         PlayerPrefs.DeleteAll();
         Debug.Log("Все технологии сброшены");

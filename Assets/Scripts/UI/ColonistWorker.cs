@@ -109,7 +109,7 @@ public class ColonistWorker : MonoBehaviour
             currentState == ColonistState.ReturningToWork)
         {
             UpdateIntelligentMovement();
-            UpdateStuckDetection(); // Добавляем проверку застревания
+            UpdateStuckDetection();
             UpdateVisuals();
         }
     }
@@ -174,8 +174,6 @@ public class ColonistWorker : MonoBehaviour
         stuckStartTime = Time.time;
         stuckRecoveryAttempts = 0;
 
-        
-
         // Прерываем текущий путь
         currentPath.Clear();
         currentPathIndex = 0;
@@ -193,8 +191,6 @@ public class ColonistWorker : MonoBehaviour
         isStuck = false;
         stuckTimer = 0f;
         stuckRecoveryAttempts = 0;
-
-        
 
         // Пересчитываем путь к цели
         if (targetBuilding != null)
@@ -288,8 +284,6 @@ public class ColonistWorker : MonoBehaviour
 
     private void ExecuteCriticalStuckRecovery()
     {
-       
-
         // 1. Телепортация на небольшое расстояние
         Vector3 teleportDirection = CalculateStuckRecoveryDirection();
         Vector3 teleportPosition = transform.position + teleportDirection * 1.5f;
@@ -312,7 +306,6 @@ public class ColonistWorker : MonoBehaviour
         if (canTeleport)
         {
             transform.position = teleportPosition;
-            Debug.Log($"{name} телепортирован в {transform.position}");
         }
         else
         {
@@ -321,7 +314,6 @@ public class ColonistWorker : MonoBehaviour
             teleportPosition = transform.position + teleportDirection * 1.5f;
 
             transform.position = teleportPosition;
-            Debug.Log($"{name} телепортирован в обратном направлении в {transform.position}");
         }
 
         // Сбрасываем состояние застревания
@@ -330,7 +322,7 @@ public class ColonistWorker : MonoBehaviour
 
     #endregion
 
-    #region ИСПРАВЛЕННАЯ СИСТЕМА ДВИЖЕНИЯ (с цикличностью)
+    #region ИСПРАВЛЕННАЯ СИСТЕМА ДВИЖЕНИЯ
 
     protected virtual void UpdateIntelligentMovement()
     {
@@ -374,7 +366,7 @@ public class ColonistWorker : MonoBehaviour
         }
     }
 
-    #region ПОЛНЫЙ ЦИКЛ РАБОТЫ (исправленный)
+    #region ПОЛНЫЙ ЦИКЛ РАБОТЫ
 
     protected virtual IEnumerator WorkRoutine()
     {
@@ -383,9 +375,6 @@ public class ColonistWorker : MonoBehaviour
         {
             yield return new WaitForSeconds(0.5f);
         }
-
-        // ОДИН РАЗ при старте работы
-        Debug.Log($"{name} начал работу на {targetBuilding.name}");
 
         // БЕСКОНЕЧНЫЙ ЦИКЛ РАБОТЫ
         while (true)
@@ -400,7 +389,7 @@ public class ColonistWorker : MonoBehaviour
             if (isStuck)
             {
                 yield return new WaitUntil(() => !isStuck);
-                continue; // Начинаем цикл заново
+                continue;
             }
 
             // Проверяем что действительно дошли
@@ -409,7 +398,7 @@ public class ColonistWorker : MonoBehaviour
                 continue;
             }
 
-            // 2. Взаимодействуем со зданием (без лишнего логирования)
+            // 2. Взаимодействуем со зданием
             yield return StartCoroutine(InteractWithBuilding());
 
             // Проверяем не застряли ли во взаимодействии
@@ -457,17 +446,12 @@ public class ColonistWorker : MonoBehaviour
             // Короткая пауза между циклами
             yield return new WaitForSeconds(0.5f);
 
-            // Сбрасываем состояние застревания на случай если были небольшие проблемы
+            // Сбрасываем состояние застревания
             if (!isStuck && stuckTimer > 0)
             {
                 stuckTimer = Mathf.Max(0, stuckTimer - 1f);
             }
         }
-    }
-
-    protected virtual void OnDestroy()
-    {
-        // Базовая реализация (может быть пустой)
     }
 
     private IEnumerator MoveToTargetWithTimeout(Transform building, float timeout)
@@ -482,21 +466,6 @@ public class ColonistWorker : MonoBehaviour
             // Проверяем таймаут
             if (Time.time - startTime > timeout)
             {
-                Debug.LogWarning($"{name} таймаут движения к {building.name}. Перезапускаю...");
-
-                // Сбрасываем путь и пробуем заново
-                currentPath.Clear();
-                currentPathIndex = 0;
-                pathUpdateTimer = pathUpdateInterval;
-
-                // Проверяем не на месте ли мы уже
-                float distance = Vector3.Distance(transform.position, GetOptimalApproachPoint(building));
-                if (distance <= interactionRange * 1.5f)
-                {
-                    // Мы близко - считаем что дошли
-                    break;
-                }
-
                 // Проверяем движение
                 if (Vector3.Distance(transform.position, initialPosition) < stuckMoveThreshold * 3f)
                 {
@@ -504,7 +473,7 @@ public class ColonistWorker : MonoBehaviour
                     OnStuckDetected();
                 }
 
-                startTime = Time.time; // Сброс таймера
+                startTime = Time.time;
             }
 
             yield return null;
@@ -513,7 +482,7 @@ public class ColonistWorker : MonoBehaviour
 
     #endregion
 
-    public void OnReachedTarget()
+    private void OnReachedTarget()
     {
         switch (currentState)
         {
@@ -535,7 +504,7 @@ public class ColonistWorker : MonoBehaviour
         currentPathIndex = 0;
         isAvoiding = false;
 
-        // Сбрасываем застревание при успешном достижении цели
+        // Сбрасываем застревание
         if (isStuck)
         {
             OnStuckRecovered();
@@ -544,7 +513,7 @@ public class ColonistWorker : MonoBehaviour
 
     #endregion
 
-    #region ОСТАЛЬНЫЕ МЕТОДЫ (оптимизированные)
+    #region ОСТАЛЬНЫЕ МЕТОДЫ
 
     private void CalculatePathToTarget(Vector3 target)
     {
@@ -721,13 +690,12 @@ public class ColonistWorker : MonoBehaviour
 
     #endregion
 
-    #region ПУБЛИЧНЫЕ МЕТОДЫ (с добавлением AddCarriedResource)
+    #region ПУБЛИЧНЫЕ МЕТОДЫ
 
     public void AssignToBuilding(Transform building)
     {
         if (building == null) return;
 
-        // Если уже назначен на это здание - ничего не делаем
         if (targetBuilding == building && currentState != ColonistState.Idle)
         {
             return;
@@ -742,36 +710,29 @@ public class ColonistWorker : MonoBehaviour
         pathUpdateTimer = pathUpdateInterval;
         isStuck = false;
         stuckTimer = 0f;
-
-        Debug.Log($"{name} назначен на здание {building.name}");
     }
 
     public void UnassignFromBuilding()
     {
         if (targetBuilding == null) return;
 
-        Debug.Log($"{name} снят с здания {targetBuilding.name}");
         targetBuilding = null;
         currentState = ColonistState.Idle;
         currentPath.Clear();
     }
 
-    // ДОБАВЛЯЕМ ОБРАТНО МЕТОД AddCarriedResource для совместимости с дочерними классами
     public void AddCarriedResource(string resourceType, int amount)
     {
         switch (resourceType.ToLower())
         {
             case "warmleaf":
                 carriedWarmleaf += amount;
-                Debug.Log($"{name} получил {amount} теплолиста. Всего: {carriedWarmleaf}");
                 break;
             case "thunderite":
                 carriedThunderite += amount;
-                Debug.Log($"{name} получил {amount} грозалита. Всего: {carriedThunderite}");
                 break;
             case "mirallite":
                 carriedMirallite += amount;
-                Debug.Log($"{name} получил {amount} мираллита. Всего: {carriedMirallite}");
                 break;
             default:
                 Debug.LogWarning($"{name}: неизвестный тип ресурса '{resourceType}'");
@@ -795,7 +756,7 @@ public class ColonistWorker : MonoBehaviour
 
     #endregion
 
-    #region ВИЗУАЛИЗАЦИЯ И ОТЛАДКА
+    #region ВИЗУАЛИЗАЦИЯ
 
     protected virtual void UpdateVisuals()
     {
@@ -803,18 +764,15 @@ public class ColonistWorker : MonoBehaviour
 
         if (isStuck)
         {
-            // Мигающий красный при застревании
             float pulse = Mathf.PingPong(Time.time * 3f, 1f);
             spriteRenderer.color = Color.Lerp(Color.red, Color.yellow, pulse);
         }
         else if (isAvoiding)
         {
-            // Желтый при обходе
             spriteRenderer.color = Color.Lerp(Color.white, Color.yellow, 0.5f);
         }
         else if (currentPath.Count > 0)
         {
-            // Голубой при следовании по пути
             spriteRenderer.color = Color.Lerp(Color.white, Color.cyan, 0.3f);
         }
         else
@@ -844,17 +802,6 @@ public class ColonistWorker : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(stuckStartPosition, 0.5f);
             Gizmos.DrawLine(transform.position, stuckStartPosition);
-        }
-
-        // История позиций для обнаружения застревания
-        Gizmos.color = new Color(1, 0.5f, 0, 0.5f);
-        for (int i = 0; i < stuckCheckPositions.Length - 1; i++)
-        {
-            if (stuckCheckPositions[i] != Vector3.zero && stuckCheckPositions[i + 1] != Vector3.zero)
-            {
-                Gizmos.DrawLine(stuckCheckPositions[i], stuckCheckPositions[i + 1]);
-                Gizmos.DrawSphere(stuckCheckPositions[i], 0.05f);
-            }
         }
     }
 

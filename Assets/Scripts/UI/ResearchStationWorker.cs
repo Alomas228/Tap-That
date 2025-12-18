@@ -1,20 +1,21 @@
-using UnityEngine;
+п»їusing UnityEngine;
 using System.Collections;
 
 public class ResearchStationWorker : ColonistWorker
 {
-    [Header("Настройки исследования")]
+    [Header("РќР°СЃС‚СЂРѕР№РєРё РёСЃСЃР»РµРґРѕРІР°РЅРёСЏ")]
     [SerializeField] private float interactionTime = 3f;
-    [SerializeField] private int carryCapacity = 5;
 
-    [Header("Визуальные эффекты")]
+    [Header("Р’РёР·СѓР°Р»СЊРЅС‹Рµ СЌС„С„РµРєС‚С‹")]
     [SerializeField] private GameObject resourceIndicator;
     [SerializeField] private ParticleSystem collectEffect;
+    [SerializeField] private ParticleSystem researchEffect;
 
     private string currentResourceType = "";
-    private int resourcesCarried = 0;
-    private bool hasResources = false;
+    private bool hasResource = false;
     private bool workCycleRunning = false;
+    private int carryAmount = 1;
+    private bool isRegistered = false;
 
     protected override float GetInteractionTime()
     {
@@ -28,316 +29,325 @@ public class ResearchStationWorker : ColonistWorker
         if (resourceIndicator != null)
             resourceIndicator.SetActive(false);
 
-        // Ждем немного и запускаем работу
-        Invoke(nameof(StartWorkCycle), 1f);
+        // Р—Р°РїСѓСЃРєР°РµРј СЂР°Р±РѕС‚Сѓ
+        StartCoroutine(InitializeAndWork());
     }
 
-    void StartWorkCycle()
+    IEnumerator InitializeAndWork()
     {
-        if (!workCycleRunning)
-        {
-            workCycleRunning = true;
-            StartCoroutine(WorkCycle());
-        }
+        // Р–РґРµРј РёРЅРёС†РёР°Р»РёР·Р°С†РёРё СЃРёСЃС‚РµРј
+        yield return new WaitForSeconds(1f);
+
+        // Р РµРіРёСЃС‚СЂРёСЂСѓРµРјСЃСЏ РєР°Рє РёСЃСЃР»РµРґРѕРІР°С‚РµР»СЊ
+        RegisterAsResearcher();
+
+        // Р—Р°РїСѓСЃРєР°РµРј РѕСЃРЅРѕРІРЅРѕР№ С†РёРєР»
+        StartCoroutine(WorkCycle());
     }
 
     IEnumerator WorkCycle()
     {
-        Debug.Log($"{name}: Начал цикл работы исследователя");
+        Debug.Log($"{name}: РќР°С‡Р°Р» СЂР°Р±РѕС‚Сѓ РёСЃСЃР»РµРґРѕРІР°С‚РµР»СЏ");
 
         while (true)
         {
-            // 1. ЖДЕМ ПОКА ЕСТЬ СТАНЦИЯ И ИССЛЕДОВАНИЕ ====================
-            yield return StartCoroutine(WaitForResearchAndStation());
-
-            // 2. ИДЕМ В ГЛАВНОЕ ЗДАНИЕ =====================================
-            Debug.Log($"{name}: Иду в главное здание за ресурсами");
-
-            bool reachedMainBuilding = false;
-            currentState = ColonistState.MovingToMainBuilding;
-
-            // Двигаемся к главному зданию
-            float mainBuildingTimeout = 30f;
-            float mainStartTime = Time.time;
-
-            while (!reachedMainBuilding)
+            // 1. Р–Р”Р•Рњ РђРљРўРР’РќРћР“Рћ РРЎРЎР›Р•Р”РћР’РђРќРРЇ Р Р Р•РЎРЈР РЎРћР’ ====================
+            while (!IsReadyToWork())
             {
-                // Проверяем таймаут
-                if (Time.time - mainStartTime > mainBuildingTimeout)
-                {
-                    Debug.LogWarning($"{name}: Таймаут при движении к главному зданию");
-                    break;
-                }
-
-                // Проверяем достижение (увеличиваем радиус проверки)
-                if (mainBuilding != null)
-                {
-                    Vector3 targetPos = GetOptimalApproachPoint(mainBuilding);
-                    float distance = Vector3.Distance(transform.position, targetPos);
-
-                    // УВЕЛИЧИВАЕМ РАДИУС ДОСТИЖЕНИЯ
-                    if (distance <= 1.5f) // было interactionRange, делаем больше
-                    {
-                        Debug.Log($"{name}: ДОШЁЛ до главного здания! Дистанция: {distance:F2}");
-                        reachedMainBuilding = true;
-                        currentState = ColonistState.DeliveringResources;
-                        break;
-                    }
-                }
-
-                yield return null;
+                Debug.Log($"{name}: РћР¶РёРґР°РЅРёРµ СѓСЃР»РѕРІРёР№ РґР»СЏ СЂР°Р±РѕС‚С‹...");
+                yield return new WaitForSeconds(2f);
             }
 
-            if (!reachedMainBuilding)
+            // 2. РР”Р•Рњ Р’ Р“Р›РђР’РќРћР• Р—Р”РђРќРР• =====================================
+            Debug.Log($"{name}: РРґСѓ РІ РіР»Р°РІРЅРѕРµ Р·РґР°РЅРёРµ");
+
+            currentState = ColonistState.MovingToMainBuilding;
+
+            // Р–РґРµРј РґРѕСЃС‚РёР¶РµРЅРёСЏ РіР»Р°РІРЅРѕРіРѕ Р·РґР°РЅРёСЏ
+            yield return StartCoroutine(MoveToLocation(mainBuilding, 30f));
+
+            if (currentState != ColonistState.DeliveringResources)
             {
-                Debug.LogWarning($"{name}: Не дошел до главного здания");
-                currentState = ColonistState.Idle;
+                Debug.LogWarning($"{name}: РќРµ РґРѕС€РµР» РґРѕ РіР»Р°РІРЅРѕРіРѕ Р·РґР°РЅРёСЏ");
                 yield return new WaitForSeconds(2f);
                 continue;
             }
 
-            // 3. БЕРЕМ РЕСУРСЫ =============================================
-            Debug.Log($"{name}: Беру ресурсы из главного здания");
+            // 3. Р‘Р•Р Р•Рњ Р Р•РЎРЈР РЎР« =============================================
+            Debug.Log($"{name}: Р‘РµСЂСѓ СЂРµСЃСѓСЂСЃС‹");
 
-            bool gotResources = false;
+            bool gotResource = false;
+            int takeAmount = 0;
 
-            // Определяем какой ресурс нужен
+            // РџРѕР»СѓС‡Р°РµРј С‚РµРєСѓС‰РµРµ РёСЃСЃР»РµРґРѕРІР°РЅРёРµ
             var currentResearch = TechnologyManager.Instance.GetResearchingTechnology();
             if (currentResearch != null && currentResearch.requirements.Count > 0)
             {
                 currentResourceType = currentResearch.requirements[0].resourceId;
 
-                // Пробуем через ResourceManager
+                // Р‘РµСЂРµРј СЂРµСЃСѓСЂСЃС‹
                 if (ResourceManager.Instance != null)
                 {
                     int available = ResourceManager.Instance.GetResourceAmount(currentResourceType);
-                    int takeAmount = Mathf.Min(carryCapacity, available);
+                    takeAmount = Mathf.Min(carryAmount, available);
 
                     if (takeAmount > 0 && ResourceManager.Instance.TrySpendResource(currentResourceType, takeAmount))
                     {
-                        resourcesCarried = takeAmount;
-                        gotResources = true;
-                        Debug.Log($"{name}: Взял {resourcesCarried} {currentResourceType} из ResourceManager");
-                    }
-                }
+                        gotResource = true;
+                        Debug.Log($"{name}: Р’Р·СЏР» {takeAmount} {currentResourceType}");
 
-                // Если не получилось, пробуем через MainBuilding
-                if (!gotResources && mainBuilding != null)
-                {
-                    MainBuilding mainComp = mainBuilding.GetComponent<MainBuilding>();
-                    if (mainComp != null)
-                    {
-                        int available = mainComp.GetResourceAmount(currentResourceType);
-                        int takeAmount = Mathf.Min(carryCapacity, available);
+                        hasResource = true;
 
-                        if (takeAmount > 0 && mainComp.TryTakeResource(currentResourceType, takeAmount))
+                        // Р’РёР·СѓР°Р»СЊРЅС‹Р№ РёРЅРґРёРєР°С‚РѕСЂ
+                        if (resourceIndicator != null)
                         {
-                            resourcesCarried = takeAmount;
-                            gotResources = true;
-                            Debug.Log($"{name}: Взял {resourcesCarried} {currentResourceType} из MainBuilding");
+                            resourceIndicator.SetActive(true);
+                            UpdateResourceIndicator();
                         }
+
+                        if (collectEffect != null)
+                            collectEffect.Play();
                     }
                 }
             }
 
-            if (!gotResources)
+            if (!gotResource)
             {
-                Debug.Log($"{name}: Не удалось взять ресурсы");
+                Debug.Log($"{name}: РќРµ СѓРґР°Р»РѕСЃСЊ РІР·СЏС‚СЊ СЂРµСЃСѓСЂСЃС‹");
                 currentState = ColonistState.Idle;
                 yield return new WaitForSeconds(2f);
                 continue;
             }
 
-            hasResources = true;
+            // 4. РР”Р•Рњ РќРђ РРЎРЎР›Р•Р”РћР’РђРўР•Р›Р¬РЎРљРЈР® РЎРўРђРќР¦РР® =========================
+            Debug.Log($"{name}: РќРµСЃСѓ СЂРµСЃСѓСЂСЃС‹ РЅР° СЃС‚Р°РЅС†РёСЋ");
 
-            // Визуальный индикатор
-            if (resourceIndicator != null)
-            {
-                resourceIndicator.SetActive(true);
-                // Настраиваем цвет в зависимости от ресурса
-                var renderer = resourceIndicator.GetComponent<SpriteRenderer>();
-                if (renderer != null)
-                {
-                    renderer.color = currentResourceType switch
-                    {
-                        "warmleaf" => Color.green,
-                        "thunderite" => Color.blue,
-                        "mirallite" => Color.magenta,
-                        _ => Color.yellow
-                    };
-                }
-            }
-
-            if (collectEffect != null)
-                collectEffect.Play();
-
-            // 4. ИДЕМ НА ИССЛЕДОВАТЕЛЬСКУЮ СТАНЦИЮ =========================
-            Debug.Log($"{name}: Несу {resourcesCarried} {currentResourceType} на станцию");
-
-            bool reachedStation = false;
             currentState = ColonistState.MovingToBuilding;
 
-            float stationTimeout = 30f;
-            float stationStartTime = Time.time;
+            // Р–РґРµРј РґРѕСЃС‚РёР¶РµРЅРёСЏ СЃС‚Р°РЅС†РёРё
+            yield return StartCoroutine(MoveToLocation(targetBuilding, 30f));
 
-            while (!reachedStation)
+            if (currentState != ColonistState.Interacting)
             {
-                // Проверяем таймаут
-                if (Time.time - stationStartTime > stationTimeout)
-                {
-                    Debug.LogWarning($"{name}: Таймаут при движении к станции");
-                    break;
-                }
-
-                // Проверяем достижение
-                if (targetBuilding != null)
-                {
-                    Vector3 targetPos = GetOptimalApproachPoint(targetBuilding);
-                    float distance = Vector3.Distance(transform.position, targetPos);
-
-                    // УВЕЛИЧИВАЕМ РАДИУС ДОСТИЖЕНИЯ
-                    if (distance <= 1.5f)
-                    {
-                        Debug.Log($"{name}: ДОШЁЛ до исследовательской станции! Дистанция: {distance:F2}");
-                        reachedStation = true;
-                        currentState = ColonistState.Interacting;
-                        break;
-                    }
-                }
-
-                yield return null;
-            }
-
-            if (!reachedStation)
-            {
-                Debug.LogWarning($"{name}: Не дошел до станции");
+                Debug.LogWarning($"{name}: РќРµ РґРѕС€РµР» РґРѕ СЃС‚Р°РЅС†РёРё");
                 currentState = ColonistState.Idle;
                 yield return new WaitForSeconds(2f);
                 continue;
             }
 
-            // 5. ПРОВОДИМ ИССЛЕДОВАНИЕ =====================================
-            Debug.Log($"{name}: Начинаю исследование на станции");
+            // 5. РџР РћР’РћР”РРњ РРЎРЎР›Р•Р”РћР’РђРќРР• =====================================
+            Debug.Log($"{name}: РќР°С‡РёРЅР°СЋ РёСЃСЃР»РµРґРѕРІР°РЅРёРµ");
 
-            // Скрываем визуал
+            // РЎРєСЂС‹РІР°РµРј РІРёР·СѓР°Р»
             if (visualObject != null)
                 visualObject.SetActive(false);
 
-            // Ждем время исследования
+            // Р–РґРµРј РІСЂРµРјСЏ РёСЃСЃР»РµРґРѕРІР°РЅРёСЏ
             yield return new WaitForSeconds(interactionTime);
 
-            // Показываем визуал
+            // РџРѕРєР°Р·С‹РІР°РµРј РІРёР·СѓР°Р»
             if (visualObject != null)
                 visualObject.SetActive(true);
 
-            // Сдаем ресурсы
+            // РЎРґР°РµРј СЂРµСЃСѓСЂСЃС‹ РЅР° РёСЃСЃР»РµРґРѕРІР°РЅРёРµ
             if (TechnologyManager.Instance != null)
             {
-                bool delivered = TechnologyManager.Instance.DeliverResearchResource(currentResourceType, resourcesCarried);
+                bool delivered = TechnologyManager.Instance.DeliverResearchResource(currentResourceType, takeAmount);
                 if (delivered)
                 {
-                    Debug.Log($"{name}: УСПЕШНО исследовал {resourcesCarried} {currentResourceType}");
+                    Debug.Log($"{name}: РСЃСЃР»РµРґРѕРІР°Р» {takeAmount} {currentResourceType}");
+
+                    if (researchEffect != null)
+                        researchEffect.Play();
                 }
                 else
                 {
-                    Debug.LogWarning($"{name}: Не удалось сдать ресурсы на исследование");
+                    Debug.LogWarning($"{name}: РќРµ СѓРґР°Р»РѕСЃСЊ СЃРґР°С‚СЊ СЂРµСЃСѓСЂСЃС‹");
                 }
             }
 
-            // Сбрасываем состояние
+            // РЎР±СЂР°СЃС‹РІР°РµРј СЃРѕСЃС‚РѕСЏРЅРёРµ
             if (resourceIndicator != null)
                 resourceIndicator.SetActive(false);
 
-            resourcesCarried = 0;
-            hasResources = false;
+            hasResource = false;
             currentState = ColonistState.Idle;
 
-            // Пауза перед следующим циклом
-            Debug.Log($"{name}: Цикл завершен, отдыхаю 1 секунду");
-            yield return new WaitForSeconds(1f);
+            // РџР°СѓР·Р°
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
-    IEnumerator WaitForResearchAndStation()
+    IEnumerator MoveToLocation(Transform target, float timeout)
     {
-        while (true)
+        if (target == null) yield break;
+
+        float startTime = Time.time;
+
+        while (currentState == ColonistState.MovingToMainBuilding ||
+               currentState == ColonistState.MovingToBuilding)
         {
-            // Проверяем назначенную станцию
-            if (targetBuilding == null)
+            // РџСЂРѕРІРµСЂСЏРµРј С‚Р°Р№РјР°СѓС‚
+            if (Time.time - startTime > timeout)
             {
-                Debug.Log($"{name}: Ожидание назначения станции...");
-                yield return new WaitForSeconds(2f);
-                continue;
+                Debug.LogWarning($"{name}: РўР°Р№РјР°СѓС‚ РґРІРёР¶РµРЅРёСЏ");
+                break;
             }
 
-            // Проверяем активное исследование
-            if (TechnologyManager.Instance == null || !TechnologyManager.Instance.IsAnyTechnologyResearching())
+            // РџСЂРѕРІРµСЂСЏРµРј РґРѕСЃС‚РёР¶РµРЅРёРµ
+            if (target != null)
             {
-                Debug.Log($"{name}: Ожидание активного исследования...");
-                yield return new WaitForSeconds(2f);
-                continue;
-            }
+                Vector3 targetPos = GetOptimalApproachPoint(target);
+                float distance = Vector3.Distance(transform.position, targetPos);
 
-            var currentResearch = TechnologyManager.Instance.GetResearchingTechnology();
-            if (currentResearch == null || currentResearch.requirements.Count == 0)
-            {
-                Debug.Log($"{name}: Исследование не имеет требований...");
-                yield return new WaitForSeconds(2f);
-                continue;
-            }
-
-            // Проверяем есть ли ресурсы для исследования
-            currentResourceType = currentResearch.requirements[0].resourceId;
-            if (ResourceManager.Instance != null)
-            {
-                int available = ResourceManager.Instance.GetResourceAmount(currentResourceType);
-                if (available <= 0)
+                if (distance <= 1.5f)
                 {
-                    Debug.Log($"{name}: Нет {currentResourceType} для исследования...");
-                    yield return new WaitForSeconds(3f);
-                    continue;
+                    // Р”РѕСЃС‚РёРіР»Рё С†РµР»Рё
+                    if (target == mainBuilding)
+                    {
+                        currentState = ColonistState.DeliveringResources;
+                    }
+                    else if (target == targetBuilding)
+                    {
+                        currentState = ColonistState.Interacting;
+                    }
+                    break;
                 }
             }
 
-            // Все условия выполнены
-            break;
+            yield return null;
         }
+    }
+
+    private bool IsReadyToWork()
+    {
+        // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р·РЅР°С‡РµРЅРЅСѓСЋ СЃС‚Р°РЅС†РёСЋ
+        if (targetBuilding == null)
+        {
+            Debug.Log($"{name}: РќРµС‚ РЅР°Р·РЅР°С‡РµРЅРЅРѕР№ СЃС‚Р°РЅС†РёРё");
+            return false;
+        }
+
+        // РџСЂРѕРІРµСЂСЏРµРј Р°РєС‚РёРІРЅРѕРµ РёСЃСЃР»РµРґРѕРІР°РЅРёРµ
+        if (TechnologyManager.Instance == null || !TechnologyManager.Instance.IsAnyTechnologyResearching())
+        {
+            Debug.Log($"{name}: РќРµС‚ Р°РєС‚РёРІРЅРѕРіРѕ РёСЃСЃР»РµРґРѕРІР°РЅРёСЏ");
+            return false;
+        }
+
+        var currentResearch = TechnologyManager.Instance.GetResearchingTechnology();
+        if (currentResearch == null || currentResearch.requirements.Count == 0)
+        {
+            Debug.Log($"{name}: РСЃСЃР»РµРґРѕРІР°РЅРёРµ Р±РµР· С‚СЂРµР±РѕРІР°РЅРёР№");
+            return false;
+        }
+
+        // РџСЂРѕРІРµСЂСЏРµРј РµСЃС‚СЊ Р»Рё СЂРµСЃСѓСЂСЃС‹
+        string resourceType = currentResearch.requirements[0].resourceId;
+        if (ResourceManager.Instance != null)
+        {
+            int available = ResourceManager.Instance.GetResourceAmount(resourceType);
+            if (available < 1)
+            {
+                Debug.Log($"{name}: РќРµС‚ СЂРµСЃСѓСЂСЃРѕРІ {resourceType} (РµСЃС‚СЊ: {available})");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void UpdateResourceIndicator()
+    {
+        if (resourceIndicator == null) return;
+
+        SpriteRenderer renderer = resourceIndicator.GetComponent<SpriteRenderer>();
+        if (renderer != null)
+        {
+            renderer.color = currentResourceType switch
+            {
+                "warmleaf" => Color.green,
+                "thunderite" => Color.blue,
+                "mirallite" => Color.magenta,
+                _ => Color.yellow
+            };
+        }
+    }
+
+    private void RegisterAsResearcher()
+    {
+        if (isRegistered || TechnologyManager.Instance == null) return;
+
+        TechnologyManager.Instance.RegisterResearcher();
+        isRegistered = true;
+        Debug.Log($"{name}: Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅ РєР°Рє РёСЃСЃР»РµРґРѕРІР°С‚РµР»СЊ");
+    }
+
+    private void UnregisterAsResearcher()
+    {
+        if (!isRegistered || TechnologyManager.Instance == null) return;
+
+        TechnologyManager.Instance.UnregisterResearcher();
+        isRegistered = false;
+        Debug.Log($"{name}: РЈРґР°Р»РµРЅ РёР· РёСЃСЃР»РµРґРѕРІР°С‚РµР»РµР№");
+    }
+
+    // РњР•РўРћР” Р”Р›РЇ РЈР’Р•Р›РР§Р•РќРРЇ Р’РњР•РЎРўРРњРћРЎРўР
+    public void IncreaseCarryCapacity(int amount)
+    {
+        carryAmount += amount;
+        Debug.Log($"{name}: Р’РјРµСЃС‚РёРјРѕСЃС‚СЊ СѓРІРµР»РёС‡РµРЅР° РґРѕ {carryAmount}");
     }
 
     protected override void CollectResourcesFromBuilding()
     {
-        // Не используем - своя логика выше
+        // РќРµ РёСЃРїРѕР»СЊР·СѓРµРј
     }
 
     protected override bool HasResourcesToDeliver()
     {
-        // Всегда false - исследователь не сдает ресурсы в главное здание
         return false;
     }
 
-    // Метод для UI
+    void OnDestroy()
+    {
+        UnregisterAsResearcher();
+    }
+
+    // UI РјРµС‚РѕРґ
     public string GetResearchStatus()
     {
-        string status = $"Состояние: {currentState}\n";
+        string status = $"РЎРѕСЃС‚РѕСЏРЅРёРµ: {currentState}\n";
 
-        if (hasResources)
+        if (hasResource)
         {
             string resourceName = currentResourceType switch
             {
-                "warmleaf" => "Теплолист",
-                "thunderite" => "Грозалит",
-                "mirallite" => "Мираллит",
+                "warmleaf" => "РўРµРїР»РѕР»РёСЃС‚",
+                "thunderite" => "Р“СЂРѕР·Р°Р»РёС‚",
+                "mirallite" => "РњРёСЂР°Р»Р»РёС‚",
                 _ => currentResourceType
             };
 
-            status += $"Несу: {resourcesCarried} {resourceName}\n";
+            status += $"РќРµСЃСѓ: {resourceName}\n";
         }
 
-        if (TechnologyManager.Instance != null && TechnologyManager.Instance.GetResearchingTechnology() != null)
+        status += $"Р’РјРµСЃС‚РёРјРѕСЃС‚СЊ: {carryAmount}\n";
+
+        if (TechnologyManager.Instance != null)
         {
             var tech = TechnologyManager.Instance.GetResearchingTechnology();
-            status += $"Исследование: {tech.displayName}\n";
-            status += $"Прогресс: {tech.currentProgress:F1}%";
+            if (tech != null)
+            {
+                status += $"РСЃСЃР»РµРґРѕРІР°РЅРёРµ: {tech.displayName}\n";
+                status += $"РЈСЂРѕРІРµРЅСЊ: {tech.currentLevel}/{tech.maxLevel}\n";
+                status += $"Р РµСЃСѓСЂСЃС‹: {tech.collectedResources}/{tech.resourcesPerLevel}\n";
+                status += $"РџСЂРѕРіСЂРµСЃСЃ: {tech.currentProgress:F1}%";
+            }
+            else
+            {
+                status += "РќРµС‚ Р°РєС‚РёРІРЅРѕРіРѕ РёСЃСЃР»РµРґРѕРІР°РЅРёСЏ";
+            }
         }
 
         return status;
@@ -347,11 +357,17 @@ public class ResearchStationWorker : ColonistWorker
     {
         if (!Application.isPlaying) return;
 
-        // Цвет в зависимости от того, несет ли ресурсы
-        if (hasResources)
+        if (hasResource)
         {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, 0.5f);
+            Gizmos.color = currentResourceType switch
+            {
+                "warmleaf" => Color.green,
+                "thunderite" => Color.blue,
+                "mirallite" => Color.magenta,
+                _ => Color.yellow
+            };
+
+            Gizmos.DrawWireSphere(transform.position, 0.3f);
 
             if (targetBuilding != null)
                 Gizmos.DrawLine(transform.position, targetBuilding.position);
@@ -359,10 +375,18 @@ public class ResearchStationWorker : ColonistWorker
         else if (currentState == ColonistState.MovingToMainBuilding)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, 0.4f);
+            Gizmos.DrawWireSphere(transform.position, 0.25f);
 
             if (mainBuilding != null)
                 Gizmos.DrawLine(transform.position, mainBuilding.position);
+        }
+        else if (currentState == ColonistState.MovingToBuilding)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(transform.position, 0.25f);
+
+            if (targetBuilding != null)
+                Gizmos.DrawLine(transform.position, targetBuilding.position);
         }
     }
 }
