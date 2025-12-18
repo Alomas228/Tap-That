@@ -129,12 +129,27 @@ public class TechnologyManager : MonoBehaviour
 
         public bool HasRequirementsMet()
         {
-            if (requiredTechIds.Count == 0) return true;
+            if (requiredTechIds == null || requiredTechIds.Count == 0)
+                return true;
+
+            if (requiredTechLevels == null || requiredTechIds.Count != requiredTechLevels.Count)
+            {
+                Debug.LogError($"Технология {displayName}: несоответствие требований! " +
+                              $"ID: {requiredTechIds.Count}, Уровни: {(requiredTechLevels?.Count ?? 0)}");
+                return false;
+            }
 
             for (int i = 0; i < requiredTechIds.Count; i++)
             {
                 Technology requiredTech = TechnologyManager.Instance.GetTechnology(requiredTechIds[i]);
-                if (requiredTech == null || requiredTech.currentLevel < requiredTechLevels[i])
+                if (requiredTech == null)
+                {
+                    Debug.LogWarning($"Технология {displayName}: не найдена требуемая технология {requiredTechIds[i]}");
+                    return false;
+                }
+
+                int requiredLevel = requiredTechLevels[i];
+                if (requiredTech.currentLevel < requiredLevel)
                     return false;
             }
 

@@ -462,7 +462,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 377793255}
+  - {fileID: 846155972}
   - {fileID: 2047747116}
   - {fileID: 1717584618}
   - {fileID: 622411756}
@@ -496,7 +496,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 55582143158522339, guid: 8a17c3dbcb3774c4b878deeb918abb94, type: 3}
+  m_Sprite: {fileID: -7868994381925960156, guid: eede226d4c26f9143bf46ac03f3c4714, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -964,7 +964,7 @@ RectTransform:
   m_Father: {fileID: 820720194}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0.057, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -981,7 +981,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5518868, g: 0.57856023, b: 1, a: 1}
+  m_Color: {r: 0, g: 0.0295432, b: 0.4811321, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1579,7 +1579,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -46}
+  m_AnchoredPosition: {x: -0.0002594, y: -47.699997}
   m_SizeDelta: {x: 89, y: 41}
   m_Pivot: {x: 0.5, y: 1.0000007}
 --- !u!114 &160457177
@@ -1680,6 +1680,81 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 160457175}
+  m_CullTransparentMesh: 1
+--- !u!1 &178400782
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 178400783}
+  - component: {fileID: 178400785}
+  - component: {fileID: 178400784}
+  m_Layer: 5
+  m_Name: BackGroundPause
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &178400783
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178400782}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 846155972}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 480, y: 508}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &178400784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178400782}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: -7868994381925960156, guid: eede226d4c26f9143bf46ac03f3c4714, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &178400785
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178400782}
   m_CullTransparentMesh: 1
 --- !u!1 &193374341
 GameObject:
@@ -2172,7 +2247,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -13243813464083639, guid: 9b986e3a4b28ad64288f67c182137637, type: 3}
+  m_Sprite: {fileID: -7022177596062188148, guid: d8e14a6b8a324ae4c940c52657e65048, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2379,8 +2454,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -5, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchoredPosition: {x: -0.33999634, y: 0}
+  m_SizeDelta: {x: -10.75, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &253265719
 GameObject:
@@ -3176,7 +3251,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3407,11 +3482,11 @@ RectTransform:
   - {fileID: 805145791}
   m_Father: {fileID: 552296841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -15.88, y: -44.101654}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 40, y: -102.104904}
   m_SizeDelta: {x: 193.5, y: 20}
-  m_Pivot: {x: 0.99999964, y: 0.4999999}
+  m_Pivot: {x: -0.000000005366843, y: 1.0000005}
 --- !u!114 &352002187
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3549,7 +3624,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0.057
+  m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3711,7 +3786,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &377793255
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3724,7 +3799,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 40703926}
+  m_Father: {fileID: 846155972}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3803,8 +3878,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 10, y: 0}
+  m_AnchoredPosition: {x: -2.4974976, y: 0}
+  m_SizeDelta: {x: 4.995, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &381700066
 MonoBehaviour:
@@ -3819,15 +3894,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 1, b: 0.14901972, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 7493495701108074736, guid: 8c9fd63ed3778a348a8eb16e49703656, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4066,7 +4141,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 0}
+  m_SizeDelta: {x: 12.74, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &399922469
 MonoBehaviour:
@@ -4088,7 +4163,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: -439116162062928833, guid: 194093fddc4bbf647b292f3ceb71d6bb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4142,7 +4217,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 20, y: -19}
+  m_AnchoredPosition: {x: 20, y: -16.3}
   m_SizeDelta: {x: 300, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &408549893
@@ -4293,7 +4368,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4783,7 +4858,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 20, y: -98}
+  m_AnchoredPosition: {x: 20, y: -102.5}
   m_SizeDelta: {x: 300, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &460532992
@@ -5544,7 +5619,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -5760,14 +5835,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2077848773602176639, guid: 557adbe36d97f304ca0b95491803cce0, type: 3}
+  m_Sprite: {fileID: -4515102905464590258, guid: 5cdceb2c4504f9741afd41ae7e628af5, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6093,12 +6168,13 @@ RectTransform:
   - {fileID: 1239576752}
   - {fileID: 355705149}
   - {fileID: 233258158}
+  - {fileID: 1481242232}
   m_Father: {fileID: 653002369}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -337.4, y: 282.65}
-  m_SizeDelta: {x: 732, y: 184}
+  m_AnchoredPosition: {x: -350.54, y: 277.54}
+  m_SizeDelta: {x: 813.28, y: 218.42}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &575260034
 MonoBehaviour:
@@ -6113,15 +6189,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: -3279166358897768008, guid: de420c5e8f29ed44b88c8dd5b47d7159, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -6309,7 +6385,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 0}
+  m_SizeDelta: {x: 12.74, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &592969444
 MonoBehaviour:
@@ -6331,7 +6407,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: -439116162062928833, guid: 194093fddc4bbf647b292f3ceb71d6bb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6382,8 +6458,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchoredPosition: {x: -0.000015258789, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &622411755
 GameObject:
@@ -6422,8 +6498,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 260}
-  m_SizeDelta: {x: 400, y: 80}
+  m_AnchoredPosition: {x: 0, y: 248}
+  m_SizeDelta: {x: 368, y: 66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &622411757
 MonoBehaviour:
@@ -6489,7 +6565,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -7937749962922180185, guid: fa7fcb6a6a679704992ce74ecdde0fb9, type: 3}
+  m_Sprite: {fileID: -8672046287007923068, guid: 5351374fdd57ef34999d29ab1b6223ef, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6557,6 +6633,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 716704094}
   - {fileID: 575260033}
   - {fileID: 1901486919}
   - {fileID: 825642828}
@@ -6758,8 +6835,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 120.8, y: 9.8}
-  m_SizeDelta: {x: 431, y: 60}
+  m_AnchoredPosition: {x: 133.55, y: 0.56}
+  m_SizeDelta: {x: 456.51, y: 78.47}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &656362432
 GameObject:
@@ -7033,6 +7110,142 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 670896273}
   m_CullTransparentMesh: 1
+--- !u!1 &716704093
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 716704094}
+  - component: {fileID: 716704096}
+  - component: {fileID: 716704095}
+  m_Layer: 5
+  m_Name: TreeTechnologyText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &716704094
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716704093}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 653002369}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 53.5, y: -42.899994}
+  m_SizeDelta: {x: 267.32, y: 33.99}
+  m_Pivot: {x: -0.000000093259644, y: 0.9999994}
+--- !u!114 &716704095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716704093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: "\u0414\u0440\u0435\u0432\u043E \u0442\u0435\u0445\u043D\u043E\u043B\u043E\u0433\u0438\u0439"
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 32
+  m_fontSizeBase: 32
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 256
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &716704096
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716704093}
+  m_CullTransparentMesh: 1
 --- !u!1 &724593634
 GameObject:
   m_ObjectHideFlags: 0
@@ -7090,8 +7303,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: -1852341094542445596, guid: d6ec7b0d312c98d489aa9a6a2ee30c17, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -7222,7 +7435,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -30, y: -40}
+  m_AnchoredPosition: {x: -30, y: -51.100006}
   m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.99999994, y: 0.99999994}
 --- !u!114 &761950906
@@ -7413,7 +7626,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7830924588482087500, guid: 9753519928bbc2043b4a8800149e539f, type: 3}
       propertyPath: clickReward
-      value: 100
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 7830924588482087500, guid: 9753519928bbc2043b4a8800149e539f, type: 3}
       propertyPath: offsetRight
@@ -7741,7 +7954,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -7910,7 +8123,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8079,7 +8292,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8266,8 +8479,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -4.9999695, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchoredPosition: {x: -0.33999634, y: 0}
+  m_SizeDelta: {x: -10.750006, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &840449190
 GameObject:
@@ -8384,7 +8597,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8537,6 +8750,83 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 844131503}
+  m_CullTransparentMesh: 1
+--- !u!1 &846155971
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 846155972}
+  - component: {fileID: 846155974}
+  - component: {fileID: 846155973}
+  m_Layer: 5
+  m_Name: BackgroudPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &846155972
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846155971}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 377793255}
+  - {fileID: 178400783}
+  m_Father: {fileID: 40703926}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1920, y: 1080}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &846155973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846155971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &846155974
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846155971}
   m_CullTransparentMesh: 1
 --- !u!1 &858927093
 GameObject:
@@ -8781,7 +9071,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -9092,11 +9382,11 @@ RectTransform:
   - {fileID: 934363110}
   m_Father: {fileID: 552296841}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0.5}
-  m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -15.88, y: 19.29477}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 40, y: -38.70519}
   m_SizeDelta: {x: 193.5, y: 20}
-  m_Pivot: {x: 0.9999998, y: 0.4999973}
+  m_Pivot: {x: -0.00000008800998, y: 0.99999946}
 --- !u!114 &918350055
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9305,8 +9595,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: -1852341094542445596, guid: d6ec7b0d312c98d489aa9a6a2ee30c17, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -9438,7 +9728,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -9489,7 +9779,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -5, y: 0}
+  m_AnchoredPosition: {x: -4.9999695, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &936698959
@@ -10056,8 +10346,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 160}
-  m_SizeDelta: {x: 400, y: 80}
+  m_AnchoredPosition: {x: 0, y: 163}
+  m_SizeDelta: {x: 368, y: 66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &951488189
 MonoBehaviour:
@@ -10123,7 +10413,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -7937749962922180185, guid: fa7fcb6a6a679704992ce74ecdde0fb9, type: 3}
+  m_Sprite: {fileID: -8672046287007923068, guid: 5351374fdd57ef34999d29ab1b6223ef, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -10195,9 +10485,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 154.59998, y: -84.2}
+  m_AnchoredPosition: {x: 40, y: -72.19951}
   m_SizeDelta: {x: 200, y: 24}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: -0.000000063795596, y: 0.9999995}
 --- !u!114 &966479440
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10608,16 +10898,19 @@ MonoBehaviour:
       +1 \u0435\u0434. \u0422\u0435\u043F\u043B\u043E\u043B\u0438\u0441\u0442\u0430
       \u0437\u0430 \u043A\u0430\u0436\u0434\u044B\u0439 \u043A\u043B\u0438\u043A
       \u0438\u0433\u0440\u043E\u043A\u0430."
+    techType: 0
     maxLevel: 20
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds: []
+    requiredTechLevels: 
     isResearching: 0
     isUnlocked: 0
-    requirements:
-    - resourceId: warmleaf
-      amountPerLevel: 20
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 20
+    baseCostThunderite: 0
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 1
+    costProgressionType: 0
     clickWarmleafBonus: 1
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
@@ -10628,33 +10921,20 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
-  - id: Collecting_images
-    displayName: 
-    description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
-      (20 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
-      \u041D\u0435\u0442 (\u0411\u0430\u0437\u043E\u0432\u0430\u044F). \u042D\u0444\u0444\u0435\u043A\u0442:
-      +1 \u0435\u0434. \u041C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430 \u0437\u0430
-      \u043A\u0430\u0436\u0434\u044B\u0439 \u043A\u043B\u0438\u043A \u0438\u0433\u0440\u043E\u043A\u0430. "
-    maxLevel: 20
-    currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
-    isResearching: 0
-    isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
-    clickMiralliteBonus: 0
-    clickThunderiteBonus: 0
-    workerWarmleafBonus: 0
-    workerThunderiteBonus: 0
-    workerMiralliteBonus: 0
-    carryCapacityBonus: 0
-    colonistSpeedBonus: 0
-    colonistCapacityBonus: 0
-    researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Automation_forested
-    displayName: 
+    displayName: "\u0410\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0437\u0430\u0446\u0438\u044F
+      \u043B\u0435\u0441\u043E\u043F\u043E\u0432\u0430\u043B\u0430"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (10 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u041F\u043E\u043B\u0438\u043C\u0435\u0440\u043D\u044B\u0435 \u0442\u043E\u043F\u043E\u0440\u044B
@@ -10662,16 +10942,63 @@ MonoBehaviour:
       \u0437\u0430 \u0440\u0430\u0431\u043E\u0447\u0438\u0439 \u0446\u0438\u043A\u043B
       (\u0434\u043B\u044F \u043A\u0430\u0436\u0434\u043E\u0433\u043E \u0440\u0430\u0431\u043E\u0447\u0435\u0433\u043E
       \u0432 \u0421\u0442\u0430\u043D\u0446\u0438\u0438 \u0434\u043E\u0431\u044B\u0447\u0438)."
+    techType: 0
+    maxLevel: 10
+    currentLevel: 0
+    requiredTechIds:
+    - captain_axe
+    requiredTechLevels: 01000000
+    isResearching: 0
+    isUnlocked: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 200
+    baseCostThunderite: 0
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 1
+    costProgressionType: 0
+    clickWarmleafBonus: 0
+    clickMiralliteBonus: 0
+    clickThunderiteBonus: 0
+    workerWarmleafBonus: 1
+    workerThunderiteBonus: 0
+    workerMiralliteBonus: 0
+    carryCapacityBonus: 0
+    colonistSpeedBonus: 0
+    colonistCapacityBonus: 0
+    researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
+  - id: Collecting_images
+    displayName: "\u0421\u0431\u043E\u0440 \u041E\u0431\u0440\u0430\u0437\u0446\u043E\u0432"
+    description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
+      (20 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
+      \u041D\u0435\u0442 (\u0411\u0430\u0437\u043E\u0432\u0430\u044F). \u042D\u0444\u0444\u0435\u043A\u0442:
+      +1 \u0435\u0434. \u041C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430 \u0437\u0430
+      \u043A\u0430\u0436\u0434\u044B\u0439 \u043A\u043B\u0438\u043A \u0438\u0433\u0440\u043E\u043A\u0430. "
+    techType: 0
     maxLevel: 20
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds: []
+    requiredTechLevels: 
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
-    clickMiralliteBonus: 0
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 60
+    baseCostThunderite: 0
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 1
+    costProgressionType: 0
+    clickWarmleafBonus: 0
+    clickMiralliteBonus: 1
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
     workerThunderiteBonus: 0
@@ -10680,23 +11007,40 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Strong_connections
-    displayName: 
+    displayName: "\u041F\u0440\u043E\u0447\u043D\u044B\u0435 \u0441\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u044F"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (10 \u0443\u0440\u043E\u0432\u043D\u0435\u0439) \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u0421\u0431\u043E\u0440 \u043E\u0431\u0440\u0430\u0437\u0446\u043E\u0432 (\u0423\u0440.
       1). \u042D\u0444\u0444\u0435\u043A\u0442: \u0423\u0432\u0435\u043B\u0438\u0447\u0438\u0432\u0430\u0435\u0442
       \u043F\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u044C \u041C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430
       \u043D\u0430 5 \u043E\u0447\u043A\u043E\u0432."
-    maxLevel: 20
+    techType: 0
+    maxLevel: 10
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Collecting_images
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 300
+    baseCostThunderite: 0
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 0.333
+    costProgressionType: 0
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10706,8 +11050,19 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 5
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Quick_connections
-    displayName: 
+    displayName: "\u0411\u044B\u0441\u0442\u0440\u044B\u0435 \u0441\u0432\u044F\u0437\u0438"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (5 \u0443\u0440\u043E\u0432\u043D\u0435\u0439) \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u0421\u0431\u043E\u0440 \u043E\u0431\u0440\u0430\u0437\u0446\u043E\u0432 (\u0423\u0440.
@@ -10716,15 +11071,21 @@ MonoBehaviour:
       \u041C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430 \u043D\u0430 0,5 \u043E\u0442
       \u0435\u0433\u043E \u043C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u043E\u0439
       \u043F\u0440\u043E\u0447\u043D\u043E\u0441\u0442\u0438. "
-    maxLevel: 20
+    techType: 0
+    maxLevel: 5
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Collecting_images
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 500
+    baseCostThunderite: 0
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 1.5
+    costProgressionType: 1
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10734,8 +11095,19 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0.5
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Geological
-    displayName: 
+    displayName: "\u0413\u0435\u043E\u0440\u0430\u0437\u0432\u0435\u0434\u043A\u0430"
     description: "\u0422\u0438\u043F: \u0423\u043D\u0438\u043A\u0430\u043B\u044C\u043D\u0430\u044F
       (Unlock). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435: \u0410\u0432\u0442\u043E\u043C\u0430\u0442\u0438\u0437\u0430\u0446\u0438\u044F
       \u043B\u0435\u0441\u043E\u043F\u043E\u0432\u0430\u043B\u0430 (\u0423\u0440.
@@ -10744,15 +11116,21 @@ MonoBehaviour:
       \u043D\u0430 \u043A\u0430\u0440\u0442\u0435. \u0420\u0430\u0437\u0431\u043B\u043E\u043A\u0438\u0440\u0443\u0435\u0442
       \u043F\u043E\u0441\u0442\u0440\u043E\u0439\u043A\u0443 \xAB\u0421\u0442\u0430\u043D\u0446\u0438\u044F
       \u0434\u043E\u0431\u044B\u0447\u0438 \u0413\u0440\u043E\u0437\u0430\u043B\u0438\u0442\u0430\xBB. "
-    maxLevel: 20
+    techType: 1
+    maxLevel: 1
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Automation_forested
+    requiredTechLevels: 03000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 2500
+    baseCostThunderite: 0
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 0
+    costProgressionType: 0
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10762,23 +11140,41 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 1
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 1
   - id: Enrichment_Mirallima
-    displayName: 
+    displayName: "\u041E\u0431\u043E\u0433\u0430\u0449\u0435\u043D\u0438\u0435 \u041C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430"
     description: "\u0422\u0438\u043F: \u0443\u043D\u0438\u043A\u0430\u043B\u044C\u043D\u0430\u044F
       (Unlock) \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435: \u041F\u0440\u043E\u0447\u043D\u044B\u0435
       \u0441\u043E\u0435\u0434\u0438\u043D\u0435\u043D\u0438\u044F (\u0423\u0440.
       2) + \u0411\u044B\u0441\u0442\u0440\u044B\u0435 \u0441\u0432\u044F\u0437\u0438
       (\u0423\u0440. 2). \u042D\u0444\u0444\u0435\u043A\u0442: \u0420\u0430\u0437\u0431\u043B\u043E\u043A\u0438\u0440\u0443\u0435\u0442
       \u043F\u043E\u0441\u0442\u0440\u043E\u0439\u043A\u0443 \xAB\u041E\u0431\u043E\u0433\u0430\u0442\u0438\u0442\u0435\u043B\u044C\xBB."
-    maxLevel: 20
+    techType: 1
+    maxLevel: 1
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Quick_connections
+    - Strong_connections
+    requiredTechLevels: 0200000002000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 3000
+    baseCostThunderite: 1000
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 0
+    costProgressionType: 0
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10788,23 +11184,40 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 1
+    unlocksThunderiteStation: 0
   - id: Module_terminals
-    displayName: 
+    displayName: "\u041C\u043E\u0434\u0443\u043B\u044C\u043D\u044B\u0435 \u0442\u0435\u0440\u043C\u0438\u043D\u0430\u043B\u044B"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (5 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u0413\u0435\u043E\u0440\u0430\u0437\u0432\u0435\u0434\u043A\u0430. \u042D\u0444\u0444\u0435\u043A\u0442:
       +1 \u0440\u0430\u0431\u043E\u0447\u0435\u0435 \u043C\u0435\u0441\u0442\u043E
       \u0432 \u041B\u0430\u0431\u043E\u0440\u0430\u0442\u043E\u0440\u0438\u0438 \u0437\u0430
       \u0443\u0440\u043E\u0432\u0435\u043D\u044C"
-    maxLevel: 20
+    techType: 0
+    maxLevel: 5
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Geological
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 1000
+    baseCostThunderite: 500
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 0.5
+    costProgressionType: 0
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10814,24 +11227,42 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 1
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Pneumatic_Pickups
-    displayName: 
+    displayName: "\u041F\u043D\u0435\u0432\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0435
+      \u043A\u0438\u0440\u043A\u0438"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (20 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u0413\u0435\u043E\u0440\u0430\u0437\u0432\u0435\u0434\u043A\u0430. \u042D\u0444\u0444\u0435\u043A\u0442:
       +1 \u0435\u0434. \u0413\u0440\u043E\u0437\u0430\u043B\u0438\u0442\u0430 \u0437\u0430
       \u043A\u0430\u0436\u0434\u044B\u0439 \u043A\u043B\u0438\u043A \u0438\u0433\u0440\u043E\u043A\u0430."
+    techType: 0
     maxLevel: 20
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Geological
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 100
+    baseCostThunderite: 100
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 0.5
+    costProgressionType: 0
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
-    clickThunderiteBonus: 0
+    clickThunderiteBonus: 1
     workerWarmleafBonus: 0
     workerThunderiteBonus: 0
     workerMiralliteBonus: 0
@@ -10839,8 +11270,19 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Heavy_Drilling
-    displayName: 
+    displayName: "\u0422\u044F\u0436\u0435\u043B\u043E\u0435 \u0431\u0443\u0440\u0435\u043D\u0438\u0435"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (10 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u0413\u0435\u043E\u0440\u0430\u0437\u0432\u0435\u0434\u043A\u0430. \u042D\u0444\u0444\u0435\u043A\u0442:
@@ -10848,17 +11290,23 @@ MonoBehaviour:
       \u0440\u0430\u0431\u043E\u0447\u0438\u0439 \u0446\u0438\u043A\u043B (\u0434\u043B\u044F
       \u043A\u0430\u0436\u0434\u043E\u0433\u043E \u0440\u0430\u0431\u043E\u0447\u0435\u0433\u043E
       \u0432 \u0421\u0442\u0430\u043D\u0446\u0438\u0438 \u0434\u043E\u0431\u044B\u0447\u0438)."
-    maxLevel: 20
+    techType: 0
+    maxLevel: 10
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Geological
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 500
+    baseCostThunderite: 300
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 0.333
+    costProgressionType: 0
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
-    clickThunderiteBonus: 0
+    clickThunderiteBonus: 1
     workerWarmleafBonus: 0
     workerThunderiteBonus: 0
     workerMiralliteBonus: 0
@@ -10866,49 +11314,85 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Enlarged_Bookmarks
-    displayName: 
+    displayName: "\u0423\u0432\u0435\u043B\u0438\u0447\u0435\u043D\u043D\u044B\u0435
+      \u0440\u044E\u043A\u0437\u0430\u043A\u0438"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (10 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u0413\u0435\u043E\u0440\u0430\u0437\u0432\u0435\u0434\u043A\u0430. \u042D\u0444\u0444\u0435\u043A\u0442:
       +1 \u0435\u0434. \u0432\u043C\u0435\u0441\u0442\u0438\u043C\u043E\u0441\u0442\u0438
       \u043A\u043E\u043B\u043E\u043D\u0438\u0441\u0442\u043E\u0432 \u043F\u0440\u0438
       \u0442\u0440\u0430\u043D\u0441\u043F\u043E\u0440\u0442\u0438\u0440\u043E\u0432\u043A\u0435."
-    maxLevel: 20
+    techType: 0
+    maxLevel: 10
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Geological
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 1000
+    baseCostThunderite: 1000
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 20
+    costProgressionType: 2
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
     workerThunderiteBonus: 0
     workerMiralliteBonus: 0
-    carryCapacityBonus: 0
+    carryCapacityBonus: 1
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Sawmill_Supervisor
-    displayName: 
+    displayName: "\u0421\u0443\u043F \u0438\u0437 \u043E\u043F\u0438\u043B\u043E\u043A"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (3 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u0413\u0435\u043E\u0440\u0430\u0437\u0432\u0435\u0434\u043A\u0430 + \u041E\u0431\u043E\u0433\u0430\u0449\u0435\u043D\u0438\u0435
       \u041C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430. \u042D\u0444\u0444\u0435\u043A\u0442:
       -0.1 \u0435\u0434 \u043F\u043E\u0433\u043B\u043E\u0449\u0435\u043D\u0438\u044F
       \u043F\u0438\u0449\u0438 \u0443 \u043A\u043E\u043B\u043E\u043D\u0438\u0441\u0442\u043E\u0432"
-    maxLevel: 20
+    techType: 0
+    maxLevel: 3
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Geological
+    - Enrichment_Mirallima
+    requiredTechLevels: 0100000001000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 5000
+    baseCostThunderite: 2000
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 2
+    costProgressionType: 1
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10918,22 +11402,40 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0.1
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Stabilization_mirallim
-    displayName: 
+    displayName: "\u0421\u0442\u0430\u0431\u0438\u043B\u0438\u0437\u0430\u0446\u0438\u044F
+      \u041C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (5 \u0443\u0440\u043E\u0432\u043D\u0435\u0439) \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u041E\u0431\u043E\u0433\u0430\u0449\u0435\u043D\u0438\u0435 \u043C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430
       \u042D\u0444\u0444\u0435\u043A\u0442: +1 \u0441. \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044F
       \u0430\u043D\u043E\u043C\u0430\u043B\u0438\u0439 \u041C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430"
-    maxLevel: 20
+    techType: 0
+    maxLevel: 3
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Enrichment_Mirallima
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 2000
+    baseCostThunderite: 2000
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 1
+    costProgressionType: 0
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10943,22 +11445,40 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 1
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Qualified_employees
-    displayName: 
+    displayName: "\u041A\u0432\u0430\u043B\u0438\u0444\u0438\u0446\u0438\u0440\u043E\u0432\u0430\u043D\u043D\u044B\u0435
+      \u0441\u043E\u0442\u0440\u0443\u0434\u043D\u0438\u043A\u0438"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (5 \u0443\u0440\u043E\u0432\u043D\u0435\u0439) \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u041E\u0431\u043E\u0433\u0430\u0449\u0435\u043D\u0438\u0435 \u043C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430
       \u042D\u0444\u0444\u0435\u043A\u0442: +0.1 \u0432\u0435\u0441\u0430 \u043A\u043E\u043B\u043E\u043D\u0438\u0441\u0442\u0430
       \u0432 \u041E\u0431\u043E\u0433\u0430\u0442\u0438\u0442\u0435\u043B\u0435 ()"
-    maxLevel: 20
+    techType: 0
+    maxLevel: 5
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Enrichment_Mirallima
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 2000
+    baseCostThunderite: 2000
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 2
+    costProgressionType: 1
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10968,22 +11488,39 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0.1
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Work_places
-    displayName: 
+    displayName: "\u0420\u0430\u0431\u043E\u0447\u0438\u0435 \u043C\u0435\u0441\u0442\u0430"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (10 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u041E\u0431\u043E\u0433\u0430\u0449\u0435\u043D\u0438\u0435 \u043C\u0438\u0440\u0430\u043B\u043B\u0438\u043C\u0430.
       \u042D\u0444\u0444\u0435\u043A\u0442: +1 \u0435\u0434. \u0432\u043C\u0435\u0441\u0442\u0438\u0442\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u0438
       \u043E\u0431\u043E\u0433\u0430\u0442\u0438\u0442\u0435\u043B\u044F "
-    maxLevel: 20
+    techType: 0
+    maxLevel: 10
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Enrichment_Mirallima
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 1500
+    baseCostThunderite: 1500
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 2
+    costProgressionType: 1
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -10993,23 +11530,41 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 1
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Research_Stabilization
-    displayName: 
+    displayName: "\u0421\u0442\u0430\u0431\u0438\u043B\u0438\u0437\u0430\u0442\u043E\u0440
+      \u0438\u0441\u0441\u043B\u0435\u0434\u043E\u0432\u0430\u043D\u0438\u0439"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (10 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u041C\u043E\u0434\u0443\u043B\u044C\u043D\u044B\u0435 \u0442\u0435\u0440\u043C\u0438\u043D\u0430\u043B\u044B
       (\u0423\u0440. 1). \u042D\u0444\u0444\u0435\u043A\u0442: +2% \u0448\u0430\u043D\u0441\u0430
       \u043D\u0435 \u043F\u043E\u0442\u0440\u0430\u0442\u0438\u0442\u044C \u0440\u0435\u0441\u0443\u0440\u0441\u044B
       \u0432 \u0441\u0442\u0430\u043D\u0446\u0438\u0438 \u0438\u0441\u0441\u043B\u0435\u0434\u043E\u0432\u0430\u043D\u0438\u044F."
-    maxLevel: 20
+    techType: 0
+    maxLevel: 10
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Enrichment_Mirallima
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 5000
+    baseCostThunderite: 5000
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 1
+    costProgressionType: 0
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -11019,48 +11574,84 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 2
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Exoskeleton
-    displayName: 
+    displayName: "\u042D\u043A\u0437\u043E\u0441\u043A\u0435\u043B\u0435\u0442"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (10 \u0443\u0440\u043E\u0432\u043D\u0435\u0439). \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u0435:
       \u0421\u043D\u0438\u0436\u0435\u043D\u0438\u0435 \u0433\u043E\u043B\u043E\u0434\u0430
       (\u0423\u0440. 1). \u042D\u0444\u0444\u0435\u043A\u0442: +5% \u043A \u0441\u043A\u043E\u0440\u043E\u0441\u0442\u0438
       \u043A\u043E\u043B\u043E\u043D\u0438\u0441\u0442\u043E\u0432"
-    maxLevel: 20
+    techType: 0
+    maxLevel: 10
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Sawmill_Supervisor
+    requiredTechLevels: 01000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 1000
+    baseCostThunderite: 1000
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 1.3
+    costProgressionType: 1
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
     workerThunderiteBonus: 0
     workerMiralliteBonus: 0
     carryCapacityBonus: 0
-    colonistSpeedBonus: 0
+    colonistSpeedBonus: 5
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   - id: Bunk_bed_places
-    displayName: 
+    displayName: "\u0414\u0432\u0443\u0445\u044A\u044F\u0440\u0443\u0441\u043D\u044B\u0435
+      \u0441\u043F\u0430\u043B\u044C\u043D\u044B\u0435 \u043C\u0435\u0441\u0442\u0430"
     description: "\u0422\u0438\u043F: \u041C\u043D\u043E\u0433\u043E\u0443\u0440\u043E\u0432\u043D\u0435\u0432\u0430\u044F
       (5 \u0443\u0440\u043E\u0432\u043D\u0435\u0439) \u0422\u0440\u0435\u0431\u043E\u0432\u0430\u043D\u0438\u044F:
       \u0421\u043D\u0438\u0436\u0435\u043D\u0438\u0435 \u0433\u043E\u043B\u043E\u0434\u0430
       (\u0423\u0440. 1) + \u0420\u044E\u043A\u0437\u0430\u043A\u0438 (\u0423\u0440.
       1) \u042D\u0444\u0444\u0435\u043A\u0442: +1 \u0435\u0434. \u0432\u043C\u0435\u0441\u0442\u0438\u043C\u043E\u0441\u0442\u0438
       \u0436\u0438\u043B\u0438\u0449\u0430"
-    maxLevel: 20
+    techType: 0
+    maxLevel: 5
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds:
+    - Sawmill_Supervisor
+    - Enlarged_Bookmarks
+    requiredTechLevels: 0100000001000000
     isResearching: 0
     isUnlocked: 0
-    requirements: []
-    clickWarmleafBonus: 1
+    hasProgressiveCost: 1
+    baseCostWarmleaf: 3000
+    baseCostThunderite: 1500
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 50
+    costProgressionType: 2
+    clickWarmleafBonus: 0
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
     workerWarmleafBonus: 0
@@ -11068,20 +11659,36 @@ MonoBehaviour:
     workerMiralliteBonus: 0
     carryCapacityBonus: 0
     colonistSpeedBonus: 0
-    colonistCapacityBonus: 0
+    colonistCapacityBonus: 1
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   selectedTechnology:
     id: 
     displayName: 
     description: 
+    techType: 0
     maxLevel: 20
     currentLevel: 0
-    resourcesPerLevel: 20
-    collectedResources: 0
-    currentProgress: 0
+    requiredTechIds: []
+    requiredTechLevels: 
     isResearching: 0
     isUnlocked: 0
-    requirements: []
+    hasProgressiveCost: 0
+    baseCostWarmleaf: 0
+    baseCostThunderite: 0
+    baseCostMirallite: 0
+    costMultiplierPerLevel: 1
+    costProgressionType: 0
     clickWarmleafBonus: 1
     clickMiralliteBonus: 0
     clickThunderiteBonus: 0
@@ -11092,13 +11699,25 @@ MonoBehaviour:
     colonistSpeedBonus: 0
     colonistCapacityBonus: 0
     researchSpeedBonus: 0
+    miralliteDurabilityBonus: 0
+    miralliteRegenBonus: 0
+    researchSlotsBonus: 0
+    anomalyDurationBonus: 0
+    colonistWeightBonus: 0
+    enricherCapacityBonus: 0
+    researchSaveChanceBonus: 0
+    foodConsumptionReduction: 0
+    unlocksThunderite: 0
+    unlocksEnricher: 0
+    unlocksThunderiteStation: 0
   technologyPanel: {fileID: 653002368}
+  techNameText: {fileID: 1104165587}
   descriptionText: {fileID: 654702416}
   levelText: {fileID: 1318436327}
-  progressText: {fileID: 0}
-  resourcesText: {fileID: 0}
+  costText: {fileID: 1481242230}
   requirementsText: {fileID: 0}
   statusText: {fileID: 0}
+  effectText: {fileID: 0}
   progressSlider: {fileID: 355705148}
   researchButton: {fileID: 233258155}
   closeButton: {fileID: 0}
@@ -11232,8 +11851,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 99.8, y: -19.025}
-  m_SizeDelta: {x: 199.6, y: 38.05}
+  m_AnchoredPosition: {x: 99.799995, y: -19.025}
+  m_SizeDelta: {x: 199.59999, y: 38.05}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1050890916
 MonoBehaviour:
@@ -11299,7 +11918,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7915056393722516713, guid: 547b99a1014eb7042835d8c2d50b7026, type: 3}
+  m_Sprite: {fileID: 5015857060904958410, guid: 29f7b5b23588cb643b8851c4f37d0efa, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -11509,7 +12128,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 20, y: -177}
+  m_AnchoredPosition: {x: 20, y: -189.6}
   m_SizeDelta: {x: 300, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1068696790
@@ -12010,7 +12629,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -12063,7 +12682,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: -40}
-  m_SizeDelta: {x: 348, y: 50}
+  m_SizeDelta: {x: 493.14, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1104165587
 MonoBehaviour:
@@ -12198,9 +12817,9 @@ RectTransform:
   - {fileID: 160457176}
   - {fileID: 193374342}
   - {fileID: 761950905}
+  - {fileID: 408549892}
   - {fileID: 460532991}
   - {fileID: 1068696789}
-  - {fileID: 408549892}
   - {fileID: 1207198805}
   - {fileID: 122002155}
   - {fileID: 1592206830}
@@ -12250,7 +12869,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -2472076170658201133, guid: efbf03d4f70f21f4189604f59d992fad, type: 3}
+  m_Sprite: {fileID: 1254917545539067338, guid: d1381ec3a7ecbe0418df703e8d6e59f2, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -12580,7 +13199,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9115094662632619528, guid: ed218032c30a05e49bc890d86be187a3, type: 3}
       propertyPath: clickReward
-      value: 100
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 9115094662632619528, guid: ed218032c30a05e49bc890d86be187a3, type: 3}
       propertyPath: collectSound
@@ -12633,8 +13252,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 10, y: 0}
+  m_AnchoredPosition: {x: -2.5, y: 0}
+  m_SizeDelta: {x: 5, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1151495021
 MonoBehaviour:
@@ -12649,15 +13268,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 1, b: 0.14901961, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 7493495701108074736, guid: 8c9fd63ed3778a348a8eb16e49703656, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -12983,8 +13602,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 60}
-  m_SizeDelta: {x: 400, y: 80}
+  m_AnchoredPosition: {x: 0, y: 78}
+  m_SizeDelta: {x: 368, y: 66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1183666524
 MonoBehaviour:
@@ -13050,7 +13669,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -7937749962922180185, guid: fa7fcb6a6a679704992ce74ecdde0fb9, type: 3}
+  m_Sprite: {fileID: -8672046287007923068, guid: 5351374fdd57ef34999d29ab1b6223ef, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -13819,7 +14438,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 54.600006, y: -12}
+  m_AnchoredPosition: {x: 40, y: -12}
   m_SizeDelta: {x: 200, y: 24}
   m_Pivot: {x: 0.000000115931016, y: 1.0000024}
 --- !u!114 &1240924990
@@ -14025,7 +14644,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1455096403836856330, guid: 83bf01be9f7e0534791beb6dd9e81924, type: 3}
+  m_Sprite: {fileID: 678767556868092397, guid: 0fbafbc8013c5c049a8794271841871f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -14680,7 +15299,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8745763847272144936, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
       propertyPath: clickReward
-      value: 100
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 8745763847272144936, guid: b044593ae80b6e741b285b83b6097d6c, type: 3}
       propertyPath: collectSound
@@ -14810,7 +15429,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -14943,7 +15562,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -15212,7 +15831,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -15230,6 +15849,142 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1420023935}
   m_CullTransparentMesh: 1
+--- !u!1 &1481242229
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1481242232}
+  - component: {fileID: 1481242231}
+  - component: {fileID: 1481242230}
+  m_Layer: 5
+  m_Name: CostText
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1481242230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1481242229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: "\u0426\u0415\u041D\u0410"
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 17
+  m_fontSizeBase: 17
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 1
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 256
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1481242231
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1481242229}
+  m_CullTransparentMesh: 1
+--- !u!224 &1481242232
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1481242229}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 575260033}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -202.91, y: -69.33}
+  m_SizeDelta: {x: 252.67, y: 29.25}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1506913929
 GameObject:
   m_ObjectHideFlags: 0
@@ -15938,8 +16693,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchoredPosition: {x: -0.000015258789, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1589272916
 GameObject:
@@ -16213,7 +16968,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -5010567526864262739, guid: e4ce7cf556a527a4b8e3fa5153c7db3e, type: 3}
+  m_Sprite: {fileID: -4515102905464590258, guid: 5cdceb2c4504f9741afd41ae7e628af5, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -17000,8 +17755,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 360}
-  m_SizeDelta: {x: 400, y: 80}
+  m_AnchoredPosition: {x: 0, y: 333}
+  m_SizeDelta: {x: 368, y: 66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1717584619
 MonoBehaviour:
@@ -17067,7 +17822,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -7937749962922180185, guid: fa7fcb6a6a679704992ce74ecdde0fb9, type: 3}
+  m_Sprite: {fileID: -8672046287007923068, guid: 5351374fdd57ef34999d29ab1b6223ef, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -17412,7 +18167,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 0}
+  m_SizeDelta: {x: 12.74, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1746782588
 MonoBehaviour:
@@ -17434,7 +18189,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: -439116162062928833, guid: 194093fddc4bbf647b292f3ceb71d6bb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -17672,7 +18427,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -17996,8 +18751,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 10, y: 0}
+  m_AnchoredPosition: {x: -2.5169983, y: 0}
+  m_SizeDelta: {x: 5.035, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1784174492
 MonoBehaviour:
@@ -18012,15 +18767,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 1, b: 0.1465373, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 7493495701108074736, guid: 8c9fd63ed3778a348a8eb16e49703656, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -18853,7 +19608,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 4980393042394730227, guid: 10625b81a5355654bb5a47b9400c7186, type: 3}
+  m_Sprite: {fileID: -2794665636753628755, guid: 33a6047ff1cbbea47b9674bbdcac99a9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -19026,8 +19781,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -5.0000153, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchoredPosition: {x: -0.33999634, y: 0}
+  m_SizeDelta: {x: -10.75, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1873489658
 GameObject:
@@ -19066,8 +19821,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 328.2, y: -19.025}
-  m_SizeDelta: {x: 199.6, y: 38.05}
+  m_AnchoredPosition: {x: 328.19998, y: -19.025}
+  m_SizeDelta: {x: 199.59999, y: 38.05}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1873489660
 MonoBehaviour:
@@ -19133,7 +19888,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7915056393722516713, guid: 547b99a1014eb7042835d8c2d50b7026, type: 3}
+  m_Sprite: {fileID: 5015857060904958410, guid: 29f7b5b23588cb643b8851c4f37d0efa, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -19407,7 +20162,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -19694,8 +20449,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: -1852341094542445596, guid: d6ec7b0d312c98d489aa9a6a2ee30c17, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -19745,8 +20500,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchoredPosition: {x: -0.000015258789, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1961547194
 GameObject:
@@ -19939,7 +20694,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -20284,7 +21039,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -20336,9 +21091,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -54}
+  m_AnchoredPosition: {x: -0.0000038146973, y: -76}
   m_SizeDelta: {x: 125, y: 50}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0.5, y: 0.9999999}
 --- !u!114 &2047747117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20784,7 +21539,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -20832,7 +21587,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   colonistArrivalInterval: 8
-  maxColonistsPerHouse: 5
+  baseMaxColonistsPerHouse: 5
   startingColonists: 0
   arrivalSound: {fileID: 8300000, guid: 43292377aef763a48a13352b88a3d8fd, type: 3}
   deathSound: {fileID: 8300000, guid: 578ea4b4d38080943ade2297d83893fe, type: 3}
@@ -21094,7 +21849,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -3369390543426049443, guid: 17d56f49bf965864fbb1af067d70b618, type: 3}
+  m_Sprite: {fileID: 3520828030376110680, guid: bdbd7c141e384b845bcc366ebb96fedc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -37417,7 +38172,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 6169740902895108357, guid: 4af62b74fe627e54596c6173f5ee17fe, type: 3}
+  m_Sprite: {fileID: 5176304252212214120, guid: c89e09a8459107141848ba27cd3acd76, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
