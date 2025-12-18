@@ -4,7 +4,7 @@ public class ColonistHungerManager : MonoBehaviour
 {
     public static ColonistHungerManager Instance { get; private set; }
 
-    [Header("Настройки потребления")]
+    [Header("Базовые настройки потребления")]
     [SerializeField] private float idleMirallitePerMinute = 2f;     // X единиц мираллита в минуту на неработающего колониста
     [SerializeField] private float workingMirallitePerMinute = 4f;  // X единиц мираллита в минуту на работающего колониста
     [SerializeField] private float consumptionInterval = 15f;       // Интервал списания (секунды) - 15 секунд
@@ -20,6 +20,10 @@ public class ColonistHungerManager : MonoBehaviour
     private float consumptionTimer = 0f;
     private float deathTimer = 0f;
     private bool isPhase2 = false;
+
+    // Текущие значения с учетом технологий
+    private float currentIdleConsumption = 2f;
+    private float currentWorkingConsumption = 4f;
 
     // Ссылки на менеджеры
     private ColonistManager colonistManager;
@@ -43,17 +47,49 @@ public class ColonistHungerManager : MonoBehaviour
         colonistManager = ColonistManager.Instance;
         distributionManager = DistributionManager.Instance;
 
+        // Применяем начальные бонусы от технологий
+        ApplyTechnologyBonuses();
+
         consumptionTimer = consumptionInterval;
         Debug.Log("ColonistHungerManager инициализирован");
-        Debug.Log($"Потребление: {idleMirallitePerMinute} мираллита/минуту на неработающего");
-        Debug.Log($"Потребление: {workingMirallitePerMinute} мираллита/минуту на работающего");
-        Debug.Log($"Интервал списания: {consumptionInterval} секунд");
+        LogConsumptionRates();
     }
 
     void Update()
     {
         UpdateConsumption();
         UpdateStarvation();
+
+        // Обновляем бонусы от технологий (на случай если их исследовали)
+        ApplyTechnologyBonuses();
+    }
+
+    private void ApplyTechnologyBonuses()
+    {
+        // Получаем бонусы снижения потребления от технологий
+        float consumptionReduction = 0f;
+        if (TechnologyManager.Instance != null)
+        {
+            consumptionReduction = TechnologyManager.Instance.GetFoodConsumptionReduction();
+        }
+
+        // Рассчитываем текущие значения потребления
+        currentIdleConsumption = Mathf.Max(0.1f, idleMirallitePerMinute - consumptionReduction);
+        currentWorkingConsumption = Mathf.Max(0.1f, workingMirallitePerMinute - consumptionReduction);
+
+        // Логируем изменения
+        if (consumptionReduction > 0)
+        {
+            Debug.Log($"Бонусы применены: потребление снижено на {consumptionReduction:F2}. " +
+                     $"Неработающие: {currentIdleConsumption:F2}, Работающие: {currentWorkingConsumption:F2}");
+        }
+    }
+
+    private void LogConsumptionRates()
+    {
+        Debug.Log($"Потребление: {currentIdleConsumption:F2} М/мин на неработающего");
+        Debug.Log($"Потребление: {currentWorkingConsumption:F2} М/мин на работающего");
+        Debug.Log($"Интервал списания: {consumptionInterval} секунд");
     }
 
     private void UpdateConsumption()
@@ -78,9 +114,9 @@ public class ColonistHungerManager : MonoBehaviour
         int workingColonists = distributionManager.GetTotalAssignedWorkers();
         int idleColonists = totalColonists - workingColonists;
 
-        // Рассчитываем потребление за интервал
-        float idleConsumptionPerSecond = idleMirallitePerMinute / 60f;
-        float workingConsumptionPerSecond = workingMirallitePerMinute / 60f;
+        // Рассчитываем потребление за интервал с текущими значениями
+        float idleConsumptionPerSecond = currentIdleConsumption / 60f;
+        float workingConsumptionPerSecond = currentWorkingConsumption / 60f;
 
         float idleMiralliteNeeded = idleConsumptionPerSecond * consumptionInterval * idleColonists;
         float workingMiralliteNeeded = workingConsumptionPerSecond * consumptionInterval * workingColonists;
@@ -146,7 +182,6 @@ public class ColonistHungerManager : MonoBehaviour
         }
     }
 
-    // Остальные методы оставляем как есть, только добавим логику с разным потреблением
     private void StartStarvation()
     {
         isStarving = true;
@@ -246,6 +281,12 @@ public class ColonistHungerManager : MonoBehaviour
 
     #region Публичные методы
 
+    public float GetSpeedDebuffMultiplier()
+    {
+        if (!isStarving) return 1f;
+        return speedDebuffMultiplier;
+    }
+
     public bool IsStarving() => isStarving;
     public bool IsInPhase2() => isPhase2;
     public float GetStarvationTimer() => starvationTimer;
@@ -255,9 +296,9 @@ public class ColonistHungerManager : MonoBehaviour
         return Mathf.Max(0f, starvationPhase1Duration - starvationTimer);
     }
 
-    // Новые методы для получения информации о потреблении
-    public float GetIdleConsumptionPerMinute() => idleMirallitePerMinute;
-    public float GetWorkingConsumptionPerMinute() => workingMirallitePerMinute;
+    // Методы для получения информации о потреблении
+    public float GetCurrentIdleConsumption() => currentIdleConsumption;
+    public float GetCurrentWorkingConsumption() => currentWorkingConsumption;
 
     public float GetTotalConsumptionPerMinute()
     {
@@ -267,7 +308,7 @@ public class ColonistHungerManager : MonoBehaviour
         int workingColonists = distributionManager.GetTotalAssignedWorkers();
         int idleColonists = totalColonists - workingColonists;
 
-        return (idleColonists * idleMirallitePerMinute) + (workingColonists * workingMirallitePerMinute);
+        return (idleColonists * currentIdleConsumption) + (workingColonists * currentWorkingConsumption);
     }
 
     public float GetConsumptionPerSecond()
@@ -285,27 +326,39 @@ public class ColonistHungerManager : MonoBehaviour
         int workingColonists = distributionManager.GetTotalAssignedWorkers();
         int idleColonists = totalColonists - workingColonists;
 
-        float workingConsumption = workingColonists * workingMirallitePerMinute;
-        float idleConsumption = idleColonists * idleMirallitePerMinute;
+        float workingConsumption = workingColonists * currentWorkingConsumption;
+        float idleConsumption = idleColonists * currentIdleConsumption;
         float totalConsumption = workingConsumption + idleConsumption;
 
         return (workingColonists, idleColonists, workingConsumption, idleConsumption, totalConsumption);
+    }
+
+    // Метод для получения бонуса снижения потребления
+    public float GetConsumptionReductionBonus()
+    {
+        if (TechnologyManager.Instance != null)
+        {
+            return TechnologyManager.Instance.GetFoodConsumptionReduction();
+        }
+        return 0f;
     }
 
     #endregion
 
     #region Настройки для балансировки
 
-    public void SetIdleConsumption(float consumptionPerMinute)
+    public void SetBaseIdleConsumption(float consumptionPerMinute)
     {
         idleMirallitePerMinute = Mathf.Clamp(consumptionPerMinute, 0.1f, 100f);
-        Debug.Log($"Потребление неработающих: {idleMirallitePerMinute} мираллита/минуту");
+        ApplyTechnologyBonuses();
+        Debug.Log($"Базовая потребность неработающих: {idleMirallitePerMinute} мираллита/минуту");
     }
 
-    public void SetWorkingConsumption(float consumptionPerMinute)
+    public void SetBaseWorkingConsumption(float consumptionPerMinute)
     {
         workingMirallitePerMinute = Mathf.Clamp(consumptionPerMinute, 0.1f, 100f);
-        Debug.Log($"Потребление работающих: {workingMirallitePerMinute} мираллита/минуту");
+        ApplyTechnologyBonuses();
+        Debug.Log($"Базовая потребность работающих: {workingMirallitePerMinute} мираллита/минуту");
     }
 
     public void SetConsumptionInterval(float interval)

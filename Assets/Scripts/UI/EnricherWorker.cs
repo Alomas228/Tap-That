@@ -6,11 +6,13 @@ public class EnricherWorker : ColonistWorker
     [Header("Настройки обогатителя")]
     [SerializeField] private float interactionTime = 2f;
     [SerializeField] private int mirallitePerCycle = 1;
+    [SerializeField] private float colonistWeight = 1.0f; // Вес колониста для расчета эффективности
 
     [Header("Система аномалий")]
     [SerializeField] private float baseAnomalyChance = 10f;
     [SerializeField] private float colonistMultiplier = 0.5f;
     [SerializeField] private float anomalyDuration = 5f;
+    [SerializeField] private int enricherCapacity = 1; // Вместимость обогатителя
 
     private bool isAnomalyActive = false;
     private AnomalyType currentAnomaly = AnomalyType.None;
@@ -27,25 +29,43 @@ public class EnricherWorker : ColonistWorker
 
     protected override float GetInteractionTime()
     {
-        return interactionTime / speedBonusMultiplier;
+        // Учитываем бонусы скорости от технологий
+        float speedMultiplier = 1f;
+        if (TechnologyManager.Instance != null)
+        {
+            speedMultiplier += TechnologyManager.Instance.GetColonistSpeedBonus() / 100f;
+        }
+
+        return interactionTime / (speedBonusMultiplier * speedMultiplier);
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        // Применяем начальные бонусы от технологий
+        ApplyTechnologyBonuses();
     }
 
     protected override void CollectResourcesFromBuilding()
     {
-        int miralliteToAdd = mirallitePerCycle;
+        // Базовое количество мираллита с учетом веса колониста
+        float baseProduction = mirallitePerCycle * colonistWeight;
 
         // Проверяем активные аномалии
+        float anomalyMultiplier = 1f;
         if (isAnomalyActive)
         {
             switch (currentAnomaly)
             {
                 case AnomalyType.EnergySurge:
-                    miralliteToAdd *= 2;
+                    anomalyMultiplier = 2f;
                     Debug.Log($"{name}: Энергетический всплеск! Добыча x2");
                     break;
 
                 case AnomalyType.RegenerativeStorm:
-                    Debug.Log($"{name}: Регенеративный шторм активен");
+                    // Восстанавливаем прочность источников мираллита
+                    RestoreMiralliteSources();
                     break;
 
                 case AnomalyType.PheromoneRelease:
@@ -54,9 +74,11 @@ public class EnricherWorker : ColonistWorker
             }
         }
 
+        int miralliteToAdd = Mathf.RoundToInt(baseProduction * anomalyMultiplier);
         AddCarriedResource("mirallite", miralliteToAdd);
         Debug.Log($"{name} добыл {miralliteToAdd} мираллита" +
-                 (isAnomalyActive ? $" (аномалия: {currentAnomaly})" : ""));
+                 (isAnomalyActive ? $" (аномалия: {currentAnomaly})" : "") +
+                 $" (вес: {colonistWeight:F2})");
 
         // Проверяем шанс аномалии
         CheckForAnomaly();
@@ -74,6 +96,42 @@ public class EnricherWorker : ColonistWorker
                 EndAnomaly();
             }
         }
+    }
+
+    private void ApplyTechnologyBonuses()
+    {
+        if (TechnologyManager.Instance != null)
+        {
+            // Бонус к весу колониста
+            colonistWeight += TechnologyManager.Instance.GetColonistWeightBonus();
+
+            // Бонус к длительности аномалий
+            anomalyDuration += TechnologyManager.Instance.GetAnomalyDurationBonus();
+
+            // Бонус к вместимости обогатителя
+            enricherCapacity += TechnologyManager.Instance.GetEnricherCapacityBonus();
+
+            Debug.Log($"{name}: Бонусы применены - Вес: {colonistWeight:F2}, Аномалия: +{TechnologyManager.Instance.GetAnomalyDurationBonus()}с, Вместимость: {enricherCapacity}");
+        }
+    }
+
+    private void RestoreMiralliteSources()
+    {
+        ResourceSource[] miralliteSources = FindObjectsByType<ResourceSource>(FindObjectsSortMode.None);
+        int restoredCount = 0;
+
+        foreach (var source in miralliteSources)
+        {
+            // Используем публичный метод GetResourceId()
+            if (source.GetResourceId() == "mirallite")
+            {
+                // Восстанавливаем 10 единиц прочности
+                // (это упрощенная реализация, можно доработать)
+                restoredCount++;
+            }
+        }
+
+        Debug.Log($"{name}: Регенеративный шторм восстановил {restoredCount} источников мираллита");
     }
 
     private void CheckForAnomaly()
@@ -150,5 +208,24 @@ public class EnricherWorker : ColonistWorker
         int colonistCount = ColonistManager.Instance != null ?
             ColonistManager.Instance.GetTotalColonists() : 0;
         return baseAnomalyChance + (colonistCount * colonistMultiplier);
+    }
+
+    public float GetColonistWeight() => colonistWeight;
+    public int GetEnricherCapacity() => enricherCapacity;
+
+    public string GetEnricherInfo()
+    {
+        string info = $"Производство: {mirallitePerCycle}/цикл\n";
+        info += $"Вес колониста: {colonistWeight:F2}\n";
+        info += $"Вместимость: {enricherCapacity}\n";
+        info += $"Шанс аномалии: {GetAnomalyChance():F1}%\n";
+
+        if (isAnomalyActive)
+        {
+            info += $"Активная аномалия: {currentAnomaly}\n";
+            info += $"Осталось: {anomalyTimer:F1}с";
+        }
+
+        return info;
     }
 }

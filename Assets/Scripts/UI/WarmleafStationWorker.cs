@@ -20,7 +20,7 @@ public class WarmleafStationWorker : ColonistWorker
         // Базовое количество теплолиста за цикл
         int baseAmount = warmleafPerCycle;
 
-        // Получаем бонусы от технологий
+        // Получаем бонусы от технологий (Автоматизация лесоповала)
         int techBonus = GetTechnologyBonus();
 
         // Итоговое количество

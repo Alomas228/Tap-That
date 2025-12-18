@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class ResearchStationWorker : ColonistWorker
 {
     [Header("Настройки исследования")]
     [SerializeField] private float interactionTime = 3f;
+    [SerializeField] private float baseResearchSaveChance = 0f; // Базовый шанс сохранения ресурсов
 
     [Header("Визуальные эффекты")]
     [SerializeField] private GameObject resourceIndicator;
@@ -13,9 +15,19 @@ public class ResearchStationWorker : ColonistWorker
 
     private string currentResourceType = "";
     private bool hasResource = false;
-    private bool workCycleRunning = false;
     private int carryAmount = 1;
     private bool isRegistered = false;
+
+    // Список требований для исследований (теперь храним локально)
+    [System.Serializable]
+    public class ResearchRequirement
+    {
+        public string resourceId;
+        public int amount;
+    }
+
+    // Карта технологий и их требований
+    private Dictionary<string, List<ResearchRequirement>> techRequirements = new Dictionary<string, List<ResearchRequirement>>();
 
     protected override float GetInteractionTime()
     {
@@ -26,11 +38,52 @@ public class ResearchStationWorker : ColonistWorker
     {
         base.Start();
 
+        // Инициализируем требования для технологий
+        InitializeTechRequirements();
+
+        // Увеличиваем вместимость за счет технологий
+        if (TechnologyManager.Instance != null)
+        {
+            int capacityBonus = TechnologyManager.Instance.GetCarryCapacityBonus();
+            carryAmount += capacityBonus;
+            Debug.Log($"{name}: Начальная вместимость увеличена на {capacityBonus}, всего: {carryAmount}");
+        }
+
         if (resourceIndicator != null)
             resourceIndicator.SetActive(false);
 
         // Запускаем работу
         StartCoroutine(InitializeAndWork());
+    }
+
+    private void InitializeTechRequirements()
+    {
+        techRequirements.Clear();
+
+        // Теплолистовые технологии
+        techRequirements["captain_axe"] = new List<ResearchRequirement>
+        {
+            new ResearchRequirement { resourceId = "warmleaf", amount = 50 }
+        };
+
+        // Мираллитовые технологии
+        techRequirements["sample_collection"] = new List<ResearchRequirement>
+        {
+            new ResearchRequirement { resourceId = "mirallite", amount = 60 }
+        };
+
+        // Грозалитовые технологии
+        techRequirements["pneumatic_picks"] = new List<ResearchRequirement>
+        {
+            new ResearchRequirement { resourceId = "thunderite", amount = 100 }
+        };
+
+        // Смешанные технологии
+        techRequirements["big_backpacks"] = new List<ResearchRequirement>
+        {
+            new ResearchRequirement { resourceId = "warmleaf", amount = 1000 },
+            new ResearchRequirement { resourceId = "thunderite", amount = 1000 }
+        };
     }
 
     IEnumerator InitializeAndWork()
@@ -51,7 +104,7 @@ public class ResearchStationWorker : ColonistWorker
 
         while (true)
         {
-            // 1. ЖДЕМ АКТИВНОГО ИССЛЕДОВАНИЯ И РЕСУРСОВ ====================
+            // 1. ЖДЕМ АКТИВНОГО ИССЛЕДОВАНИЯ ====================
             while (!IsReadyToWork())
             {
                 Debug.Log($"{name}: Ожидание условий для работы...");
@@ -79,11 +132,20 @@ public class ResearchStationWorker : ColonistWorker
             bool gotResource = false;
             int takeAmount = 0;
 
-            // Получаем текущее исследование
-            var currentResearch = TechnologyManager.Instance.GetResearchingTechnology();
-            if (currentResearch != null && currentResearch.requirements.Count > 0)
+            // Получаем доступную технологию для исследования
+            var currentResearch = GetAvailableTechnology();
+            if (currentResearch != null)
             {
-                currentResourceType = currentResearch.requirements[0].resourceId;
+                // Получаем тип ресурса для исследования
+                currentResourceType = GetResourceTypeForResearch(currentResearch);
+
+                if (string.IsNullOrEmpty(currentResourceType))
+                {
+                    Debug.Log($"{name}: Не могу определить тип ресурса для исследования");
+                    currentState = ColonistState.Idle;
+                    yield return new WaitForSeconds(2f);
+                    continue;
+                }
 
                 // Берем ресурсы
                 if (ResourceManager.Instance != null)
@@ -91,11 +153,24 @@ public class ResearchStationWorker : ColonistWorker
                     int available = ResourceManager.Instance.GetResourceAmount(currentResourceType);
                     takeAmount = Mathf.Min(carryAmount, available);
 
-                    if (takeAmount > 0 && ResourceManager.Instance.TrySpendResource(currentResourceType, takeAmount))
+                    // Проверяем шанс сохранения ресурсов
+                    float saveChance = GetResearchSaveChance();
+                    bool savedResources = Random.Range(0f, 100f) < saveChance;
+
+                    if (savedResources)
+                    {
+                        Debug.Log($"{name}: Удалось сохранить ресурсы благодаря технологии!");
+                        takeAmount = 0; // Не тратим ресурсы
+                        gotResource = true;
+                    }
+                    else if (takeAmount > 0 && ResourceManager.Instance.TrySpendResource(currentResourceType, takeAmount))
                     {
                         gotResource = true;
                         Debug.Log($"{name}: Взял {takeAmount} {currentResourceType}");
+                    }
 
+                    if (gotResource)
+                    {
                         hasResource = true;
 
                         // Визуальный индикатор
@@ -149,21 +224,13 @@ public class ResearchStationWorker : ColonistWorker
             if (visualObject != null)
                 visualObject.SetActive(true);
 
-            // Сдаем ресурсы на исследование
-            if (TechnologyManager.Instance != null)
+            // "Сдаем" ресурсы на исследование
+            if (takeAmount > 0)
             {
-                bool delivered = TechnologyManager.Instance.DeliverResearchResource(currentResourceType, takeAmount);
-                if (delivered)
-                {
-                    Debug.Log($"{name}: Исследовал {takeAmount} {currentResourceType}");
+                Debug.Log($"{name}: Исследовал {takeAmount} {currentResourceType}");
 
-                    if (researchEffect != null)
-                        researchEffect.Play();
-                }
-                else
-                {
-                    Debug.LogWarning($"{name}: Не удалось сдать ресурсы");
-                }
+                if (researchEffect != null)
+                    researchEffect.Play();
             }
 
             // Сбрасываем состояние
@@ -228,33 +295,71 @@ public class ResearchStationWorker : ColonistWorker
             return false;
         }
 
-        // Проверяем активное исследование
+        // Проверяем есть ли доступные технологии для исследования
         if (TechnologyManager.Instance == null || !TechnologyManager.Instance.IsAnyTechnologyResearching())
         {
-            Debug.Log($"{name}: Нет активного исследования");
+            Debug.Log($"{name}: Нет доступных технологий для исследования");
             return false;
         }
 
-        var currentResearch = TechnologyManager.Instance.GetResearchingTechnology();
-        if (currentResearch == null || currentResearch.requirements.Count == 0)
+        // Получаем доступную технологию
+        var currentResearch = GetAvailableTechnology();
+        if (currentResearch == null)
         {
-            Debug.Log($"{name}: Исследование без требований");
+            Debug.Log($"{name}: Нет доступной технологии");
             return false;
         }
 
-        // Проверяем есть ли ресурсы
-        string resourceType = currentResearch.requirements[0].resourceId;
-        if (ResourceManager.Instance != null)
+        // Проверяем есть ли ресурсы (если не сработал шанс сохранения)
+        float saveChance = GetResearchSaveChance();
+        if (Random.Range(0f, 100f) >= saveChance) // Если не сохранили ресурсы
         {
-            int available = ResourceManager.Instance.GetResourceAmount(resourceType);
-            if (available < 1)
+            string resourceType = GetResourceTypeForResearch(currentResearch);
+            if (ResourceManager.Instance != null)
             {
-                Debug.Log($"{name}: Нет ресурсов {resourceType} (есть: {available})");
-                return false;
+                int available = ResourceManager.Instance.GetResourceAmount(resourceType);
+                if (available < 1)
+                {
+                    Debug.Log($"{name}: Нет ресурсов {resourceType} (есть: {available})");
+                    return false;
+                }
             }
         }
 
         return true;
+    }
+
+    private TechnologyManager.Technology GetAvailableTechnology()
+    {
+        if (TechnologyManager.Instance == null) return null;
+
+        // Ищем первую доступную технологию
+        foreach (var tech in TechnologyManager.Instance.allTechnologies)
+        {
+            if (tech.currentLevel < tech.maxLevel && tech.isUnlocked && tech.HasRequirementsMet())
+            {
+                return tech;
+            }
+        }
+        return null;
+    }
+
+    private string GetResourceTypeForResearch(TechnologyManager.Technology tech)
+    {
+        // Определяем тип ресурса по ID технологии
+        string techId = tech.id.ToLower();
+
+        if (techId.Contains("warmleaf") || techId.Contains("axe") || techId.Contains("lumber") ||
+            techId.Contains("auto_lumber") || techId.Contains("captain_axe"))
+            return "warmleaf";
+        else if (techId.Contains("thunderite") || techId.Contains("drilling") || techId.Contains("picks") ||
+                 techId.Contains("pneumatic_picks") || techId.Contains("heavy_drilling"))
+            return "thunderite";
+        else if (techId.Contains("mirallite") || techId.Contains("enrichment") ||
+                 techId.Contains("sample_collection") || techId.Contains("mirallite_enrichment"))
+            return "mirallite";
+        else
+            return "warmleaf"; // По умолчанию
     }
 
     private void UpdateResourceIndicator()
@@ -276,18 +381,17 @@ public class ResearchStationWorker : ColonistWorker
 
     private void RegisterAsResearcher()
     {
-        if (isRegistered || TechnologyManager.Instance == null) return;
+        if (isRegistered) return;
 
-        TechnologyManager.Instance.RegisterResearcher();
+        // В новой системе это не нужно, но оставим для совместимости
         isRegistered = true;
         Debug.Log($"{name}: Зарегистрирован как исследователь");
     }
 
     private void UnregisterAsResearcher()
     {
-        if (!isRegistered || TechnologyManager.Instance == null) return;
+        if (!isRegistered) return;
 
-        TechnologyManager.Instance.UnregisterResearcher();
         isRegistered = false;
         Debug.Log($"{name}: Удален из исследователей");
     }
@@ -297,6 +401,19 @@ public class ResearchStationWorker : ColonistWorker
     {
         carryAmount += amount;
         Debug.Log($"{name}: Вместимость увеличена до {carryAmount}");
+    }
+
+    // МЕТОД ДЛЯ РАСЧЕТА ШАНСА СОХРАНЕНИЯ РЕСУРСОВ
+    private float GetResearchSaveChance()
+    {
+        float chance = baseResearchSaveChance;
+
+        if (TechnologyManager.Instance != null)
+        {
+            chance += TechnologyManager.Instance.GetResearchSaveChanceBonus();
+        }
+
+        return Mathf.Clamp(chance, 0f, 100f);
     }
 
     protected override void CollectResourcesFromBuilding()
@@ -333,20 +450,20 @@ public class ResearchStationWorker : ColonistWorker
         }
 
         status += $"Вместимость: {carryAmount}\n";
+        status += $"Шанс сохранения: {GetResearchSaveChance():F1}%\n";
 
         if (TechnologyManager.Instance != null)
         {
-            var tech = TechnologyManager.Instance.GetResearchingTechnology();
+            var tech = GetAvailableTechnology();
             if (tech != null)
             {
                 status += $"Исследование: {tech.displayName}\n";
                 status += $"Уровень: {tech.currentLevel}/{tech.maxLevel}\n";
-                status += $"Ресурсы: {tech.collectedResources}/{tech.resourcesPerLevel}\n";
-                status += $"Прогресс: {tech.currentProgress:F1}%";
+                status += $"Стоимость: {tech.GetCostString(tech.currentLevel + 1)}";
             }
             else
             {
-                status += "Нет активного исследования";
+                status += "Нет доступного исследования";
             }
         }
 

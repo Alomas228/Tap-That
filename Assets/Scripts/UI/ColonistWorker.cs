@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class ColonistWorker : MonoBehaviour
 {
     [Header("Базовые настройки")]
-    [SerializeField] protected float moveSpeed = 2f;
+    [SerializeField] protected float baseMoveSpeed = 2f;
     [SerializeField] protected float interactionRange = 0.5f;
     [SerializeField] protected float rotationSpeed = 10f;
 
@@ -44,6 +44,9 @@ public class ColonistWorker : MonoBehaviour
     protected int carriedWarmleaf = 0;
     protected int carriedThunderite = 0;
     protected int carriedMirallite = 0;
+
+    // Скорость с учетом технологий
+    private float currentMoveSpeed;
 
     // Система пути
     private List<Vector3> currentPath = new List<Vector3>();
@@ -90,6 +93,9 @@ public class ColonistWorker : MonoBehaviour
         buildingLayer = LayerMask.GetMask("Buildings", "Default");
         obstacleLayer = LayerMask.GetMask("Obstacles", "Buildings", "Default");
 
+        // Применяем бонусы скорости от технологий
+        ApplySpeedBonuses();
+
         FindMainBuilding();
         StartCoroutine(WorkRoutine());
 
@@ -111,6 +117,30 @@ public class ColonistWorker : MonoBehaviour
             UpdateIntelligentMovement();
             UpdateStuckDetection();
             UpdateVisuals();
+        }
+
+        // Обновляем бонусы скорости (на случай если технологии были исследованы)
+        ApplySpeedBonuses();
+    }
+
+    private void ApplySpeedBonuses()
+    {
+        float speedBonus = 0f;
+
+        // Получаем бонусы скорости от технологий
+        if (TechnologyManager.Instance != null)
+        {
+            speedBonus = TechnologyManager.Instance.GetColonistSpeedBonus();
+        }
+
+        // Применяем бонус к скорости
+        currentMoveSpeed = baseMoveSpeed * (1 + speedBonus / 100f);
+
+        // Применяем дебафф голода
+        if (ColonistHungerManager.Instance != null && ColonistHungerManager.Instance.IsStarving())
+        {
+            // Используем поле speedDebuffMultiplier вместо метода
+            currentMoveSpeed *= 0.5f; // Используем стандартное значение 50%
         }
     }
 
@@ -218,8 +248,8 @@ public class ColonistWorker : MonoBehaviour
         // Определяем в какую сторону пытаться выйти
         Vector3 recoveryDirection = CalculateStuckRecoveryDirection();
 
-        // Двигаемся в направлении выхода
-        transform.position += recoveryDirection * moveSpeed * Time.deltaTime * 0.7f;
+        // Двигаемся в направлении выхода с текущей скоростью
+        transform.position += recoveryDirection * currentMoveSpeed * Time.deltaTime * 0.7f;
 
         // Обновляем визуалы для отладки
         if (spriteRenderer != null)
@@ -363,6 +393,66 @@ public class ColonistWorker : MonoBehaviour
         if (distanceToTarget <= interactionRange)
         {
             OnReachedTarget();
+        }
+    }
+
+    private void FollowPath()
+    {
+        if (currentPathIndex >= currentPath.Count) return;
+
+        Vector3 currentWaypoint = currentPath[currentPathIndex];
+        Vector3 direction = (currentWaypoint - transform.position).normalized;
+
+        // Двигаемся к точке с текущей скоростью
+        transform.position += direction * currentMoveSpeed * Time.deltaTime;
+
+        // Поворачиваем спрайт
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX = direction.x < 0;
+        }
+
+        // Проверяем достижение точки
+        if (Vector3.Distance(transform.position, currentWaypoint) <= nodeSize)
+        {
+            currentPathIndex++;
+        }
+    }
+
+    private void MoveWithSimpleAvoidance(Vector3 target)
+    {
+        Vector3 direction = (target - transform.position).normalized;
+        float distanceToTarget = Vector3.Distance(transform.position, target);
+
+        RaycastHit2D hit = Physics2D.CircleCast(
+            transform.position, 0.3f, direction,
+            Mathf.Min(obstacleDetectionRadius, distanceToTarget),
+            obstacleLayer | buildingLayer
+        );
+
+        if (hit.collider != null && hit.collider.gameObject != gameObject &&
+            hit.collider.transform != targetBuilding && hit.collider.transform != mainBuilding)
+        {
+            Vector3 avoidanceDir = CalculateAvoidanceDirection(direction, hit.normal);
+            transform.position += avoidanceDir * currentMoveSpeed * Time.deltaTime;
+            isAvoiding = true;
+            avoidanceTimer = 0.5f;
+        }
+        else
+        {
+            if (!isAvoiding || avoidanceTimer <= 0f)
+            {
+                transform.position += direction * currentMoveSpeed * Time.deltaTime;
+            }
+            else
+            {
+                avoidanceTimer -= Time.deltaTime;
+            }
+        }
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX = direction.x < 0;
         }
     }
 
@@ -588,66 +678,6 @@ public class ColonistWorker : MonoBehaviour
         return true;
     }
 
-    private void FollowPath()
-    {
-        if (currentPathIndex >= currentPath.Count) return;
-
-        Vector3 currentWaypoint = currentPath[currentPathIndex];
-        Vector3 direction = (currentWaypoint - transform.position).normalized;
-
-        // Двигаемся к точке
-        transform.position += direction * moveSpeed * Time.deltaTime;
-
-        // Поворачиваем спрайт
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.flipX = direction.x < 0;
-        }
-
-        // Проверяем достижение точки
-        if (Vector3.Distance(transform.position, currentWaypoint) <= nodeSize)
-        {
-            currentPathIndex++;
-        }
-    }
-
-    private void MoveWithSimpleAvoidance(Vector3 target)
-    {
-        Vector3 direction = (target - transform.position).normalized;
-        float distanceToTarget = Vector3.Distance(transform.position, target);
-
-        RaycastHit2D hit = Physics2D.CircleCast(
-            transform.position, 0.3f, direction,
-            Mathf.Min(obstacleDetectionRadius, distanceToTarget),
-            obstacleLayer | buildingLayer
-        );
-
-        if (hit.collider != null && hit.collider.gameObject != gameObject &&
-            hit.collider.transform != targetBuilding && hit.collider.transform != mainBuilding)
-        {
-            Vector3 avoidanceDir = CalculateAvoidanceDirection(direction, hit.normal);
-            transform.position += avoidanceDir * moveSpeed * Time.deltaTime;
-            isAvoiding = true;
-            avoidanceTimer = 0.5f;
-        }
-        else
-        {
-            if (!isAvoiding || avoidanceTimer <= 0f)
-            {
-                transform.position += direction * moveSpeed * Time.deltaTime;
-            }
-            else
-            {
-                avoidanceTimer -= Time.deltaTime;
-            }
-        }
-
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.flipX = direction.x < 0;
-        }
-    }
-
     protected Vector3 GetOptimalApproachPoint(Transform building)
     {
         if (building == null) return transform.position + Vector3.right;
@@ -754,6 +784,17 @@ public class ColonistWorker : MonoBehaviour
     public bool IsWorking() => currentState != ColonistState.Idle;
     public ColonistState GetCurrentState() => currentState;
 
+    public float GetCurrentSpeed() => currentMoveSpeed;
+    public float GetSpeedPercentage()
+    {
+        float speedBonus = 0f;
+        if (TechnologyManager.Instance != null)
+        {
+            speedBonus = TechnologyManager.Instance.GetColonistSpeedBonus();
+        }
+        return 1 + speedBonus / 100f;
+    }
+
     #endregion
 
     #region ВИЗУАЛИЗАЦИЯ
@@ -803,6 +844,10 @@ public class ColonistWorker : MonoBehaviour
             Gizmos.DrawWireSphere(stuckStartPosition, 0.5f);
             Gizmos.DrawLine(transform.position, stuckStartPosition);
         }
+
+        // Скорость
+        Gizmos.color = Color.green;
+        Gizmos.DrawRay(transform.position, Vector3.right * (currentMoveSpeed / 10f));
     }
 
     #endregion

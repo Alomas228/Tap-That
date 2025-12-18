@@ -56,9 +56,16 @@ public class ResourceSource : MonoBehaviour, IPointerClickHandler
             {
                 regenTimer = 0f;
 
+                // ƒобавл€ем бонус восстановлени€ от технологий
+                float regenRate = 1f;
+                if (TechnologyManager.Instance != null)
+                {
+                    regenRate += TechnologyManager.Instance.GetMiralliteRegenBonus() / 100f;
+                }
+
                 if (currentDurability < 100)
                 {
-                    currentDurability = Mathf.Min(currentDurability + 1, 100);
+                    currentDurability = Mathf.Min(currentDurability + Mathf.RoundToInt(regenRate), 100);
                 }
             }
         }
@@ -66,12 +73,21 @@ public class ResourceSource : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        // ƒл€ мираллита провер€ем прочность
-        if (resourceType == ResourceType.Mirallite && currentDurability <= 0)
+        // ƒл€ мираллита провер€ем прочность с учетом бонусов от технологий
+        if (resourceType == ResourceType.Mirallite)
         {
-            PlayExhaustedSound();
-            Debug.Log($"{gameObject.name} - нет прочности!");
-            return;
+            int maxDurability = 100;
+            if (TechnologyManager.Instance != null)
+            {
+                maxDurability += TechnologyManager.Instance.GetMiralliteDurabilityBonus();
+            }
+
+            if (currentDurability <= 0)
+            {
+                PlayExhaustedSound();
+                Debug.Log($"{gameObject.name} - нет прочности!");
+                return;
+            }
         }
 
         // ѕровер€ем кулдаун
@@ -142,8 +158,7 @@ public class ResourceSource : MonoBehaviour, IPointerClickHandler
                     techBonus = TechnologyManager.Instance.GetClickMiralliteBonus();
                     break;
                 case ResourceType.Thunderite:
-                    // ƒл€ грозалита пока нет бонусов, но можно добавить
-                    techBonus = 0; // TechnologyManager.Instance.GetClickThunderiteBonus();
+                    techBonus = TechnologyManager.Instance.GetClickThunderiteBonus();
                     break;
             }
         }
@@ -182,7 +197,7 @@ public class ResourceSource : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    private string GetResourceId()
+    public string GetResourceId()
     {
         return resourceType.ToString().ToLower();
     }
@@ -216,7 +231,14 @@ public class ResourceSource : MonoBehaviour, IPointerClickHandler
     public float GetDurabilityPercentage()
     {
         if (resourceType != ResourceType.Mirallite) return 1f;
-        return (float)currentDurability / 100f;
+
+        int maxDurability = 100;
+        if (TechnologyManager.Instance != null)
+        {
+            maxDurability += TechnologyManager.Instance.GetMiralliteDurabilityBonus();
+        }
+
+        return (float)currentDurability / maxDurability;
     }
 
     public bool CanBeMined()
@@ -226,6 +248,18 @@ public class ResourceSource : MonoBehaviour, IPointerClickHandler
     }
 
     public int GetCurrentDurability() => currentDurability;
+
+    public int GetMaxDurability()
+    {
+        if (resourceType != ResourceType.Mirallite) return 100;
+
+        int maxDurability = 100;
+        if (TechnologyManager.Instance != null)
+        {
+            maxDurability += TechnologyManager.Instance.GetMiralliteDurabilityBonus();
+        }
+        return maxDurability;
+    }
 
     public Vector2Int GetOccupiedStart() => occupiedStart;
     public Vector2Int GetOccupiedSize() => occupiedSize;

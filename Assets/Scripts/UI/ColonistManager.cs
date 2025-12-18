@@ -7,7 +7,7 @@ public class ColonistManager : MonoBehaviour
 
     [Header("Настройки колонистов")]
     [SerializeField] private float colonistArrivalInterval = 8f;
-    [SerializeField] private int maxColonistsPerHouse = 5;
+    [SerializeField] private int baseMaxColonistsPerHouse = 5;
     [SerializeField] private int startingColonists = 0;
 
     [Header("Звуки колонистов")]
@@ -32,6 +32,7 @@ public class ColonistManager : MonoBehaviour
     private int availableColonists = 0;
     private int assignedColonists = 0;
     private int totalHousingCapacity = 0;
+    private int maxColonistsPerHouse = 5; // Текущее значение с учетом технологий
 
     // Очередь ожидания
     private Queue<ColonistInQueue> waitingQueue = new Queue<ColonistInQueue>();
@@ -78,6 +79,9 @@ public class ColonistManager : MonoBehaviour
         availableColonists = startingColonists;
         currentPatience = maxPatience;
 
+        // Применяем начальные бонусы от технологий
+        ApplyTechnologyBonuses();
+
         colonistTimer = colonistArrivalInterval;
 
         Debug.Log($"ColonistManager инициализирован. Начальные колонисты: {totalColonists}");
@@ -88,6 +92,25 @@ public class ColonistManager : MonoBehaviour
         UpdateColonistArrival();
         UpdateHousingCapacity();
         UpdatePatienceSystem();
+
+        // Обновляем бонусы от технологий (на случай если их исследовали)
+        ApplyTechnologyBonuses();
+    }
+
+    private void ApplyTechnologyBonuses()
+    {
+        // Получаем бонусы к вместимости жилища
+        int capacityBonus = 0;
+        if (TechnologyManager.Instance != null)
+        {
+            capacityBonus = TechnologyManager.Instance.GetColonistCapacityBonus();
+        }
+
+        // Обновляем максимальное количество колонистов на дом
+        maxColonistsPerHouse = baseMaxColonistsPerHouse + capacityBonus;
+
+        // Пересчитываем общую вместимость
+        UpdateHousingCapacity();
     }
 
     private void UpdateColonistArrival()
@@ -157,7 +180,7 @@ public class ColonistManager : MonoBehaviour
             }
 
             NotifyColonistChanged();
-            Debug.Log($"Вместимость жилья: {houseCount} домов → {totalHousingCapacity} мест");
+            Debug.Log($"Вместимость жилья: {houseCount} домов × {maxColonistsPerHouse} = {totalHousingCapacity} мест");
         }
     }
 
@@ -217,7 +240,6 @@ public class ColonistManager : MonoBehaviour
         // Сначала пытаемся выселить доступных колонистов
         int colonistsToRemove = Mathf.Min(availableColonists, lostSpots);
         RemoveColonist(colonistsToRemove);
-        
 
         // Если все равно недостаточно места
         int remainingSpots = lostSpots - colonistsToRemove;
@@ -226,7 +248,6 @@ public class ColonistManager : MonoBehaviour
             // Нужно выселить назначенных колонистов
             UnassignColonist(Mathf.Min(assignedColonists, remainingSpots));
             RemoveColonist(remainingSpots);
-            
         }
 
         Debug.Log($"Потеряно {lostSpots} мест для жилья. Выселено колонистов: {lostSpots}");
@@ -365,6 +386,7 @@ public class ColonistManager : MonoBehaviour
     public float GetColonistArrivalInterval() => colonistArrivalInterval;
     public float GetColonistTimer() => colonistTimer;
     public int GetMaxColonistsPerHouse() => maxColonistsPerHouse;
+    public int GetBaseMaxColonistsPerHouse() => baseMaxColonistsPerHouse;
 
     public int GetWaitingQueueLength() => waitingQueue.Count;
     public float GetCurrentPatience() => currentPatience;
@@ -386,11 +408,11 @@ public class ColonistManager : MonoBehaviour
         Debug.Log($"Интервал прибытия колонистов: {colonistArrivalInterval} сек");
     }
 
-    public void SetMaxColonistsPerHouse(int max)
+    public void SetBaseMaxColonistsPerHouse(int max)
     {
-        maxColonistsPerHouse = Mathf.Clamp(max, 1, 20);
-        Debug.Log($"Максимум колонистов на жилище: {maxColonistsPerHouse}");
-        UpdateHousingCapacity();
+        baseMaxColonistsPerHouse = Mathf.Clamp(max, 1, 20);
+        Debug.Log($"Базовая вместимость жилища: {baseMaxColonistsPerHouse}");
+        ApplyTechnologyBonuses();
     }
 
     public void SetBasePatienceSpeed(float speed)
