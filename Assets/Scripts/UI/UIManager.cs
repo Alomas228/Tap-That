@@ -73,7 +73,7 @@ public class UIManager : MonoBehaviour
 
         if (distributionButton != null)
         {
-            distributionButton.onClick.AddListener(ToggleDistributionMenu); // БЫЛО ToggleBuildMenu
+            distributionButton.onClick.AddListener(ToggleDistributionMenu);
             Debug.Log($"Кнопка Distribution настроена: {distributionButton.name}");
         }
 
@@ -287,11 +287,11 @@ public class UIManager : MonoBehaviour
         if (shouldOpen)
         {
             boostersMenuPanel.SetActive(true);
-            Debug.Log("Меню бустеров открыто");
+            Debug.Log("Меню технологий/бустеров открыто");
         }
         else
         {
-            Debug.Log("Меню бустеров закрыто");
+            Debug.Log("Меню технологий/бустеров закрыто");
         }
     }
 
@@ -355,7 +355,7 @@ public class UIManager : MonoBehaviour
         if (boostersMenuPanel != null)
         {
             boostersMenuPanel.SetActive(false);
-            Debug.Log("Меню бустеров закрыто");
+            Debug.Log("Меню технологий/бустеров закрыто");
         }
 
         // Закрываем и настройки

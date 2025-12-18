@@ -81,7 +81,7 @@ public class ColonistWorker : MonoBehaviour
         ReturningToWork
     }
 
-    void Start()
+    protected virtual void Start()
     {
         buildingManager = BuildingManager.Instance;
         resourceManager = ResourceManager.Instance;
@@ -174,7 +174,7 @@ public class ColonistWorker : MonoBehaviour
         stuckStartTime = Time.time;
         stuckRecoveryAttempts = 0;
 
-        Debug.LogWarning($"{name} ЗАСТРЯЛ в позиции {transform.position}. Начинаю процедуру выхода...");
+        
 
         // Прерываем текущий путь
         currentPath.Clear();
@@ -194,7 +194,7 @@ public class ColonistWorker : MonoBehaviour
         stuckTimer = 0f;
         stuckRecoveryAttempts = 0;
 
-        Debug.Log($"{name} ВЫШЕЛ ИЗ ЗАСТРЕВАНИЯ! Позиция: {transform.position}");
+        
 
         // Пересчитываем путь к цели
         if (targetBuilding != null)
@@ -288,7 +288,7 @@ public class ColonistWorker : MonoBehaviour
 
     private void ExecuteCriticalStuckRecovery()
     {
-        Debug.LogWarning($"{name} КРИТИЧЕСКОЕ ЗАСТРЕВАНИЕ! Применяю экстренные меры...");
+       
 
         // 1. Телепортация на небольшое расстояние
         Vector3 teleportDirection = CalculateStuckRecoveryDirection();
@@ -384,6 +384,7 @@ public class ColonistWorker : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
 
+        // ОДИН РАЗ при старте работы
         Debug.Log($"{name} начал работу на {targetBuilding.name}");
 
         // БЕСКОНЕЧНЫЙ ЦИКЛ РАБОТЫ
@@ -391,7 +392,6 @@ public class ColonistWorker : MonoBehaviour
         {
             // 1. Идем к зданию
             currentState = ColonistState.MovingToBuilding;
-            Debug.Log($"{name} идет к зданию {targetBuilding.name}");
 
             // Ждем пока дойдет до здания ИЛИ застрянет на слишком долго
             yield return StartCoroutine(MoveToTargetWithTimeout(targetBuilding, 30f));
@@ -399,7 +399,6 @@ public class ColonistWorker : MonoBehaviour
             // Проверяем не застряли ли мы
             if (isStuck)
             {
-                Debug.LogWarning($"{name} застрял по пути к зданию. Жду выхода...");
                 yield return new WaitUntil(() => !isStuck);
                 continue; // Начинаем цикл заново
             }
@@ -407,18 +406,15 @@ public class ColonistWorker : MonoBehaviour
             // Проверяем что действительно дошли
             if (currentState != ColonistState.Interacting)
             {
-                Debug.LogWarning($"{name} не дошел до здания. Перезапускаю...");
                 continue;
             }
 
-            // 2. Взаимодействуем со зданием
-            Debug.Log($"{name} взаимодействует с {targetBuilding.name}");
+            // 2. Взаимодействуем со зданием (без лишнего логирования)
             yield return StartCoroutine(InteractWithBuilding());
 
             // Проверяем не застряли ли во взаимодействии
             if (currentState != ColonistState.Idle)
             {
-                Debug.LogWarning($"{name} застрял во взаимодействии. Продолжаю...");
                 currentState = ColonistState.Idle;
             }
 
@@ -426,7 +422,6 @@ public class ColonistWorker : MonoBehaviour
             if (HasResourcesToDeliver())
             {
                 currentState = ColonistState.MovingToMainBuilding;
-                Debug.Log($"{name} несет ресурсы в главное здание");
 
                 // Ждем пока дойдет до главного здания
                 yield return StartCoroutine(MoveToTargetWithTimeout(mainBuilding, 30f));
@@ -434,7 +429,6 @@ public class ColonistWorker : MonoBehaviour
                 // Проверяем не застряли ли
                 if (isStuck)
                 {
-                    Debug.LogWarning($"{name} застрял по пути к главному зданию. Жду выхода...");
                     yield return new WaitUntil(() => !isStuck);
                     continue;
                 }
@@ -442,24 +436,20 @@ public class ColonistWorker : MonoBehaviour
                 // Проверяем что дошли
                 if (currentState != ColonistState.DeliveringResources)
                 {
-                    Debug.LogWarning($"{name} не дошел до главного здания. Перезапускаю...");
                     continue;
                 }
 
                 // Сдаем ресурсы
                 DeliverResources();
-                Debug.Log($"{name} сдал ресурсы");
 
                 // 4. Возвращаемся к работе
                 currentState = ColonistState.ReturningToWork;
-                Debug.Log($"{name} возвращается к работе");
 
                 // Ждем возвращения
                 yield return StartCoroutine(MoveToTargetWithTimeout(targetBuilding, 30f));
 
                 if (isStuck)
                 {
-                    Debug.LogWarning($"{name} застрял при возвращении. Жду выхода...");
                     yield return new WaitUntil(() => !isStuck);
                 }
             }
@@ -473,6 +463,11 @@ public class ColonistWorker : MonoBehaviour
                 stuckTimer = Mathf.Max(0, stuckTimer - 1f);
             }
         }
+    }
+
+    protected virtual void OnDestroy()
+    {
+        // Базовая реализация (может быть пустой)
     }
 
     private IEnumerator MoveToTargetWithTimeout(Transform building, float timeout)
@@ -518,7 +513,7 @@ public class ColonistWorker : MonoBehaviour
 
     #endregion
 
-    private void OnReachedTarget()
+    public void OnReachedTarget()
     {
         switch (currentState)
         {

@@ -97,19 +97,22 @@ public class ResourceSource : MonoBehaviour, IPointerClickHandler
             Debug.Log($"{displayName}: +{clickReward}");
         }
 
+        // Рассчитываем итоговую награду с учетом бонусов от технологий
+        int actualReward = CalculateFinalReward();
+
         // Добавляем ресурс игроку
         switch (resourceType)
         {
             case ResourceType.Warmleaf:
-                ResourceManager.Instance.CollectWarmleaf(clickReward);
+                ResourceManager.Instance.AddResource("warmleaf", actualReward);
                 PlayCollectSound();
                 break;
             case ResourceType.Thunderite:
-                ResourceManager.Instance.CollectThunderite(clickReward);
+                ResourceManager.Instance.AddResource("thunderite", actualReward);
                 PlayCollectSound();
                 break;
             case ResourceType.Mirallite:
-                ResourceManager.Instance.AddResource(resourceId, clickReward);
+                ResourceManager.Instance.AddResource("mirallite", actualReward);
                 PlayCollectSound();
                 break;
         }
@@ -117,6 +120,50 @@ public class ResourceSource : MonoBehaviour, IPointerClickHandler
         // Визуальные эффекты
         if (collectEffect != null)
             collectEffect.Play();
+
+        // Выводим информацию о бонусе в лог
+        LogBonusInfo(actualReward);
+    }
+
+    private int CalculateFinalReward()
+    {
+        int baseReward = clickReward;
+        int techBonus = 0;
+
+        // Получаем бонусы от технологий
+        if (TechnologyManager.Instance != null)
+        {
+            switch (resourceType)
+            {
+                case ResourceType.Warmleaf:
+                    techBonus = TechnologyManager.Instance.GetClickWarmleafBonus();
+                    break;
+                case ResourceType.Mirallite:
+                    techBonus = TechnologyManager.Instance.GetClickMiralliteBonus();
+                    break;
+                case ResourceType.Thunderite:
+                    // Для грозалита пока нет бонусов, но можно добавить
+                    techBonus = 0; // TechnologyManager.Instance.GetClickThunderiteBonus();
+                    break;
+            }
+        }
+
+        return baseReward + techBonus;
+    }
+
+    private void LogBonusInfo(int finalReward)
+    {
+        string resourceName = resourceType.ToString();
+        int techBonus = finalReward - clickReward;
+
+        if (techBonus > 0)
+        {
+            Debug.Log($"{resourceName}: {clickReward} (база) + {techBonus} (бонус) = {finalReward} всего");
+        }
+        else
+        {
+            Debug.Log($"{resourceName}: {finalReward} (без бонусов)");
+        }
     }
 
     private void PlayCollectSound()
