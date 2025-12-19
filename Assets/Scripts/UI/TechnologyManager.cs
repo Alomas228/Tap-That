@@ -10,28 +10,29 @@ public class TechnologyManager : MonoBehaviour
     [System.Serializable]
     public class ResearchRequirement
     {
-        public string resourceId;      // "warmleaf", "thunderite", "mirallite"
-        public int amount;             // Количество ресурса
+        public string resourceId;
+        public int amount;
     }
 
     [System.Serializable]
     public class Technology
     {
         [Header("Основные настройки")]
-        public string id;                      // Уникальный ID
-        public string displayName;             // Отображаемое имя
-        public string description;             // Описание для UI
-        public TechType techType = TechType.MultiLevel; // Тип технологии
-        public int maxLevel = 10;              // Максимальный уровень
-        public int currentLevel = 0;           // Текущий уровень
+        public string id;
+        public string displayName;
+        public string description;
+        public TechType techType = TechType.MultiLevel;
+        public int maxLevel = 10;
+        public int currentLevel = 0;
+
+        [Header("Текущий прогресс исследования")]
+        public int currentResourceAmount = 0;
+        public int requiredResourceAmount = 0;
+        public bool isResearchInProgress = false;
 
         [Header("Требования к разблокировке")]
-        public List<string> requiredTechIds = new List<string>(); // ID необходимых технологий
-        public List<int> requiredTechLevels = new List<int>(); // Уровни необходимых технологий
-
-        [Header("Прогресс исследования")]
-        public bool isResearching = false;
-        public bool isUnlocked = false;
+        public List<string> requiredTechIds = new List<string>();
+        public List<int> requiredTechLevels = new List<int>();
 
         [Header("Прогрессивная стоимость")]
         public bool hasProgressiveCost = false;
@@ -42,41 +43,58 @@ public class TechnologyManager : MonoBehaviour
         public CostProgressionType costProgressionType = CostProgressionType.Linear;
 
         [Header("Бонусы")]
-        public float clickWarmleafBonus = 0;     // +X теплолиста за клик
-        public float clickMiralliteBonus = 0;    // +X мираллита за клик
-        public float clickThunderiteBonus = 0;   // +X грозалита за клик
-        public float workerWarmleafBonus = 0;    // +X теплолиста за цикл рабочего
-        public float workerThunderiteBonus = 0;  // +X грозалита за цикл рабочего
-        public float workerMiralliteBonus = 0;   // +X мираллита за цикл рабочего
-        public int carryCapacityBonus = 0;       // +X к вместимости рюкзака
-        public float colonistSpeedBonus = 0;     // +X% скорости колонистов
-        public int colonistCapacityBonus = 0;    // +X вместимость жилища
-        public float researchSpeedBonus = 0;     // +X% скорости исследования
-        public int miralliteDurabilityBonus = 0; // +X прочности мираллима
-        public float miralliteRegenBonus = 0;    // +X восстановления мираллима
-        public int researchSlotsBonus = 0;       // +X рабочих мест в лаборатории
-        public float anomalyDurationBonus = 0;   // +X времени аномалий мираллима
-        public float colonistWeightBonus = 0;    // +X веса колониста в обогатителе
-        public int enricherCapacityBonus = 0;    // +X вместимости обогатителя
-        public float researchSaveChanceBonus = 0; // +X% шанса не потратить ресурсы
-        public float foodConsumptionReduction = 0; // -X потребления пищи
+        public float clickWarmleafBonus = 0;
+        public float clickMiralliteBonus = 0;
+        public float clickThunderiteBonus = 0;
+        public float workerWarmleafBonus = 0;
+        public float workerThunderiteBonus = 0;
+        public float workerMiralliteBonus = 0;
+        public int carryCapacityBonus = 0;
+        public float colonistSpeedBonus = 0;
+        public int colonistCapacityBonus = 0;
+        public float researchSpeedBonus = 0;
+        public int miralliteDurabilityBonus = 0;
+        public float miralliteRegenBonus = 0;
+        public int researchSlotsBonus = 0;
+        public float anomalyDurationBonus = 0;
+        public float colonistWeightBonus = 0;
+        public int enricherCapacityBonus = 0;
+        public float researchSaveChanceBonus = 0;
+        public float foodConsumptionReduction = 0;
 
         [Header("Эффекты разблокировки")]
-        public bool unlocksThunderite = false;   // Разблокирует грозалит
-        public bool unlocksEnricher = false;     // Разблокирует обогатитель
-        public bool unlocksThunderiteStation = false; // Разблокирует станцию добычи грозалита
+        public bool unlocksThunderite = false;
+        public bool unlocksEnricher = false;
+        public bool unlocksThunderiteStation = false;
 
         public enum TechType
         {
-            MultiLevel,  // Многоуровневая
-            Unlock,      // Разблокировка (одноразовая)
+            MultiLevel,
+            Unlock,
         }
 
         public enum CostProgressionType
         {
-            Linear,      // Линейный рост: baseCost + (costPerLevel * level)
-            Exponential, // Экспоненциальный: baseCost * (multiplier ^ level)
-            Percentage   // Процентный рост: baseCost + (baseCost * percentage * level)
+            Linear,
+            Exponential,
+            Percentage
+        }
+
+        public void InitializeForLevel(int level)
+        {
+            if (level <= 0 || level > maxLevel) return;
+
+            requiredResourceAmount = CalculateTotalCostForLevel(level);
+            currentResourceAmount = 0;
+        }
+
+        public int CalculateTotalCostForLevel(int level)
+        {
+            int warmleafCost = GetCostForLevel("warmleaf", level);
+            int thunderiteCost = GetCostForLevel("thunderite", level);
+            int miralliteCost = GetCostForLevel("mirallite", level);
+
+            return warmleafCost + thunderiteCost + miralliteCost;
         }
 
         public string GetCostString(int level = -1)
@@ -114,14 +132,11 @@ public class TechnologyManager : MonoBehaviour
             {
                 case CostProgressionType.Linear:
                     return Mathf.RoundToInt(baseCost + (baseCost * costMultiplierPerLevel * (level - 1)));
-
                 case CostProgressionType.Exponential:
                     return Mathf.RoundToInt(baseCost * Mathf.Pow(costMultiplierPerLevel, level - 1));
-
                 case CostProgressionType.Percentage:
                     float percentage = costMultiplierPerLevel / 100f;
                     return Mathf.RoundToInt(baseCost * Mathf.Pow(1 + percentage, level - 1));
-
                 default:
                     return baseCost;
             }
@@ -134,8 +149,7 @@ public class TechnologyManager : MonoBehaviour
 
             if (requiredTechLevels == null || requiredTechIds.Count != requiredTechLevels.Count)
             {
-                Debug.LogError($"Технология {displayName}: несоответствие требований! " +
-                              $"ID: {requiredTechIds.Count}, Уровни: {(requiredTechLevels?.Count ?? 0)}");
+                Debug.LogError($"Технология {displayName}: несоответствие требований!");
                 return false;
             }
 
@@ -201,6 +215,82 @@ public class TechnologyManager : MonoBehaviour
 
             return effectStr.Trim();
         }
+
+        public float GetProgressPercentage()
+        {
+            if (requiredResourceAmount <= 0) return 0f;
+            return (float)currentResourceAmount / requiredResourceAmount;
+        }
+
+        public bool IsReadyForResearch()
+        {
+            return currentLevel < maxLevel &&
+                   isResearchInProgress &&
+                   HasRequirementsMet() &&
+                   !string.IsNullOrEmpty(GetPrimaryResourceType());
+        }
+
+        public bool CanStartResearch()
+        {
+            return currentLevel < maxLevel &&
+                   HasRequirementsMet() &&
+                   !isResearchInProgress;
+        }
+
+        public string GetPrimaryResourceType()
+        {
+            int warmleafCost = GetCostForLevel("warmleaf", currentLevel + 1);
+            int thunderiteCost = GetCostForLevel("thunderite", currentLevel + 1);
+            int miralliteCost = GetCostForLevel("mirallite", currentLevel + 1);
+
+            if (warmleafCost > 0) return "warmleaf";
+            if (thunderiteCost > 0) return "thunderite";
+            if (miralliteCost > 0) return "mirallite";
+            return "warmleaf";
+        }
+
+        public bool AcceptResource(string resourceType, int amount)
+        {
+            if (!IsReadyForResearch()) return false;
+            if (GetPrimaryResourceType() != resourceType) return false;
+
+            currentResourceAmount += amount;
+
+            if (currentResourceAmount >= requiredResourceAmount)
+            {
+                CompleteResearch();
+                return true;
+            }
+
+            return false;
+        }
+
+        private void CompleteResearch()
+        {
+            currentLevel++;
+            currentResourceAmount = 0;
+            isResearchInProgress = false;
+
+            // Сбрасываем текущее исследование в менеджере
+            if (TechnologyManager.Instance != null)
+            {
+                TechnologyManager.Instance.ClearCurrentResearchingTechnology();
+            }
+
+            if (currentLevel >= maxLevel)
+            {
+                Debug.Log($"{displayName} достиг максимального уровня!");
+            }
+            else
+            {
+                InitializeForLevel(currentLevel + 1);
+            }
+
+            TechnologyManager.Instance.SaveTechnologyProgress();
+            TechnologyManager.Instance.ApplyTechnologyBonuses(this);
+
+            Debug.Log($"{displayName} повышен до уровня {currentLevel}!");
+        }
     }
 
     [Header("Все технологии")]
@@ -208,6 +298,7 @@ public class TechnologyManager : MonoBehaviour
 
     [Header("Текущее выбранное исследование")]
     public Technology selectedTechnology = null;
+    public Technology currentResearchingTechnology = null; // Текущая исследуемая технология
 
     [Header("Ссылки на UI")]
     public GameObject technologyPanel;
@@ -218,6 +309,7 @@ public class TechnologyManager : MonoBehaviour
     public TextMeshProUGUI requirementsText;
     public TextMeshProUGUI statusText;
     public TextMeshProUGUI effectText;
+    public TextMeshProUGUI progressText;
     public Slider progressSlider;
     public Button researchButton;
     public Button closeButton;
@@ -240,15 +332,35 @@ public class TechnologyManager : MonoBehaviour
 
     void Start()
     {
-        // Создаем все технологии если список пуст
         if (allTechnologies.Count == 0)
         {
             CreateAllTechnologies();
         }
 
         SetupUI();
-        UpdateTechnologyUI();
         LoadTechnologyProgress();
+
+        // Инициализируем все технологии
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel < tech.maxLevel)
+            {
+                tech.InitializeForLevel(tech.currentLevel + 1);
+            }
+        }
+
+        // Восстанавливаем текущее исследование
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.isResearchInProgress)
+            {
+                currentResearchingTechnology = tech;
+                Debug.Log($"Восстановлено текущее исследование: {tech.displayName}");
+                break;
+            }
+        }
+
+        UpdateTechnologyUI();
     }
 
     void CreateAllTechnologies()
@@ -263,13 +375,14 @@ public class TechnologyManager : MonoBehaviour
             description = "Улучшенные инструменты для сбора теплолиста",
             techType = Technology.TechType.MultiLevel,
             maxLevel = 20,
-            isUnlocked = true,
+            isResearchInProgress = false,
             hasProgressiveCost = true,
             costProgressionType = Technology.CostProgressionType.Linear,
             baseCostWarmleaf = 50,
-            costMultiplierPerLevel = 1.0f, // 50 Т + (50 Т × Уровень)
+            costMultiplierPerLevel = 1.0f,
             clickWarmleafBonus = 1
         };
+        captainAxe.InitializeForLevel(1);
         allTechnologies.Add(captainAxe);
 
         // 2. Сбор образцов
@@ -280,13 +393,14 @@ public class TechnologyManager : MonoBehaviour
             description = "Эффективный сбор мираллита",
             techType = Technology.TechType.MultiLevel,
             maxLevel = 20,
-            isUnlocked = true,
+            isResearchInProgress = false,
             hasProgressiveCost = true,
             costProgressionType = Technology.CostProgressionType.Linear,
             baseCostWarmleaf = 60,
-            costMultiplierPerLevel = 1.0f, // 60 Т + (60 Т × Уровень)
+            costMultiplierPerLevel = 1.0f,
             clickMiralliteBonus = 1
         };
+        sampleCollection.InitializeForLevel(1);
         allTechnologies.Add(sampleCollection);
 
         // 3. Автоматизация лесоповала
@@ -302,12 +416,13 @@ public class TechnologyManager : MonoBehaviour
             hasProgressiveCost = true,
             costProgressionType = Technology.CostProgressionType.Linear,
             baseCostWarmleaf = 200,
-            costMultiplierPerLevel = 0.75f, // 200 Т + (150 Т × Уровень)
+            costMultiplierPerLevel = 0.75f,
             workerWarmleafBonus = 1
         };
+        autoLumber.InitializeForLevel(1);
         allTechnologies.Add(autoLumber);
 
-        // 4. Прочные соединения (Полимерные топоры - базовая)
+        // 4. Полимерные топоры
         var polymerAxes = new Technology
         {
             id = "polymer_axes",
@@ -320,9 +435,10 @@ public class TechnologyManager : MonoBehaviour
             hasProgressiveCost = true,
             costProgressionType = Technology.CostProgressionType.Linear,
             baseCostWarmleaf = 300,
-            costMultiplierPerLevel = 0.333f, // 300 Т + (100 × Уровень)
+            costMultiplierPerLevel = 0.333f,
             miralliteDurabilityBonus = 5
         };
+        polymerAxes.InitializeForLevel(1);
         allTechnologies.Add(polymerAxes);
 
         // 5. Быстрые связи
@@ -338,9 +454,10 @@ public class TechnologyManager : MonoBehaviour
             hasProgressiveCost = true,
             costProgressionType = Technology.CostProgressionType.Exponential,
             baseCostWarmleaf = 500,
-            costMultiplierPerLevel = 1.5f, // 500 Т × (1.5 ^ Уровень)
+            costMultiplierPerLevel = 1.5f,
             miralliteRegenBonus = 0.5f
         };
+        fastConnections.InitializeForLevel(1);
         allTechnologies.Add(fastConnections);
 
         // 6. Георазведка
@@ -358,6 +475,7 @@ public class TechnologyManager : MonoBehaviour
             unlocksThunderite = true,
             unlocksThunderiteStation = true
         };
+        geoSurvey.InitializeForLevel(1);
         allTechnologies.Add(geoSurvey);
 
         // 7. Обогащение Мираллима
@@ -375,6 +493,7 @@ public class TechnologyManager : MonoBehaviour
             baseCostThunderite = 1000,
             unlocksEnricher = true
         };
+        miralliteEnrichment.InitializeForLevel(1);
         allTechnologies.Add(miralliteEnrichment);
 
         // 8. Модульные терминалы
@@ -391,9 +510,10 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Linear,
             baseCostWarmleaf = 1000,
             baseCostThunderite = 500,
-            costMultiplierPerLevel = 0.5f, // +500/+250 каждый уровень
-            researchSlotsBonus = 1
+            costMultiplierPerLevel = 0.5f,
+            researchSlotsBonus = 1 // +1 слот за каждый уровень
         };
+        modularTerminals.InitializeForLevel(1);
         allTechnologies.Add(modularTerminals);
 
         // 9. Пневматические кирки
@@ -410,9 +530,10 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Linear,
             baseCostWarmleaf = 100,
             baseCostThunderite = 100,
-            costMultiplierPerLevel = 0.5f, // +50 Т и Г за уровень
+            costMultiplierPerLevel = 0.5f,
             clickThunderiteBonus = 1
         };
+        pneumaticPicks.InitializeForLevel(1);
         allTechnologies.Add(pneumaticPicks);
 
         // 10. Тяжелое бурение
@@ -429,9 +550,10 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Linear,
             baseCostWarmleaf = 500,
             baseCostThunderite = 300,
-            costMultiplierPerLevel = 0.333f, // +100 Г за уровень
+            costMultiplierPerLevel = 0.333f,
             workerThunderiteBonus = 1
         };
+        heavyDrilling.InitializeForLevel(1);
         allTechnologies.Add(heavyDrilling);
 
         // 11. Увеличенные рюкзаки
@@ -448,12 +570,13 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Percentage,
             baseCostWarmleaf = 1000,
             baseCostThunderite = 1000,
-            costMultiplierPerLevel = 20f, // +20% к цене за уровень
+            costMultiplierPerLevel = 20f,
             carryCapacityBonus = 1
         };
+        bigBackpacks.InitializeForLevel(1);
         allTechnologies.Add(bigBackpacks);
 
-        // 12. Суп из опилок (Снижение голода)
+        // 12. Снижение голода
         var sawdustSoup = new Technology
         {
             id = "sawdust_soup",
@@ -467,9 +590,10 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Exponential,
             baseCostWarmleaf = 5000,
             baseCostThunderite = 2000,
-            costMultiplierPerLevel = 2.0f, // Каждый уровень x2
+            costMultiplierPerLevel = 2.0f,
             foodConsumptionReduction = 0.1f
         };
+        sawdustSoup.InitializeForLevel(1);
         allTechnologies.Add(sawdustSoup);
 
         // 13. Стабилизация Мираллима
@@ -489,6 +613,7 @@ public class TechnologyManager : MonoBehaviour
             costMultiplierPerLevel = 1.0f,
             anomalyDurationBonus = 1.0f
         };
+        miralliteStabilization.InitializeForLevel(1);
         allTechnologies.Add(miralliteStabilization);
 
         // 14. Квалифицированные сотрудники
@@ -505,9 +630,10 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Exponential,
             baseCostWarmleaf = 2000,
             baseCostThunderite = 2000,
-            costMultiplierPerLevel = 2.0f, // Каждый уровень x2
+            costMultiplierPerLevel = 2.0f,
             colonistWeightBonus = 0.1f
         };
+        skilledWorkers.InitializeForLevel(1);
         allTechnologies.Add(skilledWorkers);
 
         // 15. Рабочие места в обогатителе
@@ -524,9 +650,10 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Exponential,
             baseCostWarmleaf = 1500,
             baseCostThunderite = 1500,
-            costMultiplierPerLevel = 2.0f, // Каждый уровень x2
+            costMultiplierPerLevel = 2.0f,
             enricherCapacityBonus = 1
         };
+        enricherWorkplaces.InitializeForLevel(1);
         allTechnologies.Add(enricherWorkplaces);
 
         // 16. Стабилизатор исследований
@@ -544,6 +671,7 @@ public class TechnologyManager : MonoBehaviour
             baseCostThunderite = 5000,
             researchSaveChanceBonus = 2.0f
         };
+        researchStabilizer.InitializeForLevel(1);
         allTechnologies.Add(researchStabilizer);
 
         // 17. Экзоскелет
@@ -560,9 +688,10 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Exponential,
             baseCostWarmleaf = 1000,
             baseCostThunderite = 1000,
-            costMultiplierPerLevel = 1.3f, // × (1.3 ^ Уровень)
+            costMultiplierPerLevel = 1.3f,
             colonistSpeedBonus = 5.0f
         };
+        exoskeleton.InitializeForLevel(1);
         allTechnologies.Add(exoskeleton);
 
         // 18. Двухъярусные спальные места
@@ -579,9 +708,10 @@ public class TechnologyManager : MonoBehaviour
             costProgressionType = Technology.CostProgressionType.Percentage,
             baseCostWarmleaf = 3000,
             baseCostThunderite = 1500,
-            costMultiplierPerLevel = 50f, // рост х1.5 за уровень
+            costMultiplierPerLevel = 50f,
             colonistCapacityBonus = 1
         };
+        bunkBeds.InitializeForLevel(1);
         allTechnologies.Add(bunkBeds);
     }
 
@@ -614,10 +744,17 @@ public class TechnologyManager : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (Time.frameCount % 6 == 0 && selectedTechnology != null)
+        {
+            UpdateTechnologyUI();
+        }
+    }
+
     public void SelectTechnology(string techId)
     {
         Technology tech = allTechnologies.Find(t => t.id == techId);
-
         if (tech != null)
         {
             selectedTechnology = tech;
@@ -627,10 +764,6 @@ public class TechnologyManager : MonoBehaviour
             {
                 technologyPanel.SetActive(true);
             }
-        }
-        else
-        {
-            Debug.LogWarning($"Технология с ID '{techId}' не найдена!");
         }
     }
 
@@ -648,177 +781,70 @@ public class TechnologyManager : MonoBehaviour
             return;
         }
 
+        // Проверяем, не ведется ли уже исследование ДРУГОЙ технологии
+        if (IsAnyOtherTechnologyResearching(selectedTechnology))
+        {
+            ShowNotification($"Уже ведется исследование: {currentResearchingTechnology.displayName}");
+            return;
+        }
+
+        if (selectedTechnology.isResearchInProgress)
+        {
+            ShowNotification("Исследование уже идет!");
+            return;
+        }
+
         if (!selectedTechnology.HasRequirementsMet())
         {
-            ShowNotification("Не выполнены требования!");
+            ShowNotification("Требования не выполнены!");
             return;
         }
 
-        if (!selectedTechnology.isUnlocked)
-        {
-            ShowNotification("Технология не разблокирована!");
-            return;
-        }
+        // Назначаем текущее исследование
+        currentResearchingTechnology = selectedTechnology;
 
-        // Рассчитываем стоимость следующего уровня
-        int nextLevel = selectedTechnology.currentLevel + 1;
-        int warmleafCost = selectedTechnology.GetCostForLevel("warmleaf", nextLevel);
-        int thunderiteCost = selectedTechnology.GetCostForLevel("thunderite", nextLevel);
-        int miralliteCost = selectedTechnology.GetCostForLevel("mirallite", nextLevel);
+        // НАЧИНАЕМ ИССЛЕДОВАНИЕ
+        selectedTechnology.isResearchInProgress = true;
+        selectedTechnology.InitializeForLevel(selectedTechnology.currentLevel + 1);
 
-        // Проверяем ресурсы
-        if (ResourceManager.Instance != null)
-        {
-            if (warmleafCost > 0 && ResourceManager.Instance.GetWarmleafAmount() < warmleafCost)
-            {
-                ShowNotification($"Недостаточно теплолиста! Нужно: {warmleafCost}");
-                return;
-            }
-
-            if (thunderiteCost > 0 && ResourceManager.Instance.GetThunderiteAmount() < thunderiteCost)
-            {
-                ShowNotification($"Недостаточно грозалита! Нужно: {thunderiteCost}");
-                return;
-            }
-
-            if (miralliteCost > 0 && ResourceManager.Instance.GetMiralliteAmount() < miralliteCost)
-            {
-                ShowNotification($"Недостаточно мираллита! Нужно: {miralliteCost}");
-                return;
-            }
-        }
-
-        // Списание ресурсов
-        bool resourcesSpent = true;
-        if (warmleafCost > 0) resourcesSpent &= ResourceManager.Instance.TrySpendResource("warmleaf", warmleafCost);
-        if (thunderiteCost > 0) resourcesSpent &= ResourceManager.Instance.TrySpendResource("thunderite", thunderiteCost);
-        if (miralliteCost > 0) resourcesSpent &= ResourceManager.Instance.TrySpendResource("mirallite", miralliteCost);
-
-        if (!resourcesSpent)
-        {
-            ShowNotification("Ошибка при списании ресурсов!");
-            return;
-        }
-
-        // Повышаем уровень
-        LevelUpTechnology(selectedTechnology);
-
-        ShowNotification($"{selectedTechnology.displayName} повышен до уровня {selectedTechnology.currentLevel}!");
-    }
-
-    void LevelUpTechnology(Technology tech)
-    {
-        tech.currentLevel++;
-
-        // Применяем бонусы
-        ApplyTechnologyBonuses(tech);
-
-        // Если технология разблокирующая - помечаем как завершенную
-        if (tech.techType == Technology.TechType.Unlock && tech.currentLevel >= 1)
-        {
-            tech.isUnlocked = false; // Завершена
-        }
-
-        // Сохраняем прогресс
+        ShowNotification($"Начато исследование: {selectedTechnology.displayName}");
         SaveTechnologyProgress();
-
-        // Обновляем UI
         UpdateTechnologyUI();
 
-        // Проверяем разблокировку новых технологий
-        CheckTechnologyUnlocks();
-
-        // Если разблокировали ресурсы/здания - уведомляем систему
-        if (tech.unlocksThunderite)
-        {
-            Debug.Log("Грозалит разблокирован!");
-            // Уведомляем другие системы о разблокировке
-        }
-
-        if (tech.unlocksEnricher)
-        {
-            Debug.Log("Обогатитель разблокирован!");
-            // Уведомляем BuildingManager
-            if (BuildingManager.Instance != null)
-            {
-                // Разблокируем постройку обогатителя
-            }
-        }
-
-        if (tech.unlocksThunderiteStation)
-        {
-            Debug.Log("Станция добычи грозалита разблокирована!");
-            // Уведомляем BuildingManager
-        }
+        Debug.Log($"Исследование начато: {selectedTechnology.displayName}. " +
+                 $"Требуется ресурсов: {selectedTechnology.requiredResourceAmount}");
     }
 
-    void ApplyTechnologyBonuses(Technology tech)
-    {
-        Debug.Log($"Технология '{tech.displayName}' повышена до уровня {tech.currentLevel}");
-
-        // Применяем бонусы ко всем соответствующим системам
-        // (Эта логика будет интегрирована в соответствующие скрипты)
-
-        if (tech.carryCapacityBonus > 0)
-        {
-            ApplyCarryCapacityBonus(tech.carryCapacityBonus);
-        }
-
-        // Здесь можно добавить применение других бонусов
-    }
-
-    private void ApplyCarryCapacityBonus(int bonus)
-    {
-        // Находим всех исследователей и увеличиваем им вместимость
-        ResearchStationWorker[] researchers = FindObjectsByType<ResearchStationWorker>(FindObjectsSortMode.None);
-        foreach (var researcher in researchers) // Была ошибка в имени переменной
-        {
-            researcher.IncreaseCarryCapacity(bonus);
-        }
-        Debug.Log($"Применен бонус вместимости +{bonus} к {researchers.Length} исследователям");
-    }
-
-    void CheckTechnologyUnlocks()
+    public bool AddResearchProgress(string resourceType, int amount)
     {
         foreach (var tech in allTechnologies)
         {
-            if (!tech.isUnlocked && tech.HasRequirementsMet())
+            if (tech.IsReadyForResearch() && tech.GetPrimaryResourceType() == resourceType)
             {
-                tech.isUnlocked = true;
-                Debug.Log($"Технология '{tech.displayName}' разблокирована!");
-                ShowNotification($"Разблокирована: {tech.displayName}");
+                bool completed = tech.AcceptResource(resourceType, amount);
+                if (completed)
+                {
+                    ShowNotification($"Завершено исследование: {tech.displayName} (ур. {tech.currentLevel})");
+                }
+                UpdateTechnologyUI();
+                return true;
             }
         }
-    }
-
-    void Update()
-    {
-        // Обновляем UI каждые 0.1 секунды
-        if (Time.frameCount % 6 == 0 && selectedTechnology != null)
-        {
-            UpdateTechnologyUI();
-        }
+        return false;
     }
 
     void UpdateTechnologyUI()
     {
         if (selectedTechnology == null) return;
 
-        // Обновляем тексты
         if (techNameText != null)
-        {
             techNameText.text = selectedTechnology.displayName;
-        }
 
         if (descriptionText != null)
-        {
             descriptionText.text = selectedTechnology.description;
-        }
 
         if (levelText != null)
-        {
             levelText.text = $"Уровень: {selectedTechnology.currentLevel}/{selectedTechnology.maxLevel}";
-        }
 
         if (costText != null)
         {
@@ -834,13 +860,32 @@ public class TechnologyManager : MonoBehaviour
         }
 
         if (requirementsText != null)
-        {
             requirementsText.text = selectedTechnology.GetRequirementsString();
-        }
 
         if (effectText != null)
-        {
             effectText.text = selectedTechnology.GetEffectDescription();
+
+        if (progressText != null)
+        {
+            if (selectedTechnology.isResearchInProgress)
+            {
+                progressText.text = $"Прогресс: {selectedTechnology.currentResourceAmount}/{selectedTechnology.requiredResourceAmount}";
+                progressText.color = Color.cyan;
+            }
+            else
+            {
+                progressText.text = "Не исследуется";
+                progressText.color = Color.gray;
+            }
+        }
+
+        if (progressSlider != null)
+        {
+            progressSlider.gameObject.SetActive(selectedTechnology.isResearchInProgress);
+            if (selectedTechnology.isResearchInProgress)
+            {
+                progressSlider.value = selectedTechnology.GetProgressPercentage();
+            }
         }
 
         if (statusText != null)
@@ -855,25 +900,26 @@ public class TechnologyManager : MonoBehaviour
                 statusText.text = "Требования не выполнены";
                 statusText.color = Color.red;
             }
-            else if (!selectedTechnology.isUnlocked)
+            else if (selectedTechnology.isResearchInProgress)
             {
-                statusText.text = "Заблокировано";
-                statusText.color = Color.gray;
+                statusText.text = "В процессе исследования";
+                statusText.color = Color.cyan;
+            }
+            else if (CanStartResearch(selectedTechnology))
+            {
+                statusText.text = "Готово к исследованию";
+                statusText.color = Color.green;
             }
             else
             {
-                statusText.text = "Доступно";
-                statusText.color = Color.green;
+                statusText.text = "Недоступно";
+                statusText.color = Color.gray;
             }
         }
 
-        // Обновляем кнопку
         if (researchButton != null)
         {
-            bool canResearch = selectedTechnology.isUnlocked &&
-                              selectedTechnology.currentLevel < selectedTechnology.maxLevel &&
-                              selectedTechnology.HasRequirementsMet();
-
+            bool canResearch = CanStartResearch(selectedTechnology);
             researchButton.interactable = canResearch;
 
             TextMeshProUGUI buttonText = researchButton.GetComponentInChildren<TextMeshProUGUI>();
@@ -881,8 +927,13 @@ public class TechnologyManager : MonoBehaviour
             {
                 if (canResearch)
                 {
-                    buttonText.text = "Исследовать";
+                    buttonText.text = "Начать исследование";
                     buttonText.color = Color.white;
+                }
+                else if (selectedTechnology.isResearchInProgress)
+                {
+                    buttonText.text = "В процессе";
+                    buttonText.color = Color.cyan;
                 }
                 else
                 {
@@ -891,72 +942,11 @@ public class TechnologyManager : MonoBehaviour
                 }
             }
         }
-    }
 
-    void SaveTechnologyProgress()
-    {
-        foreach (var tech in allTechnologies)
+        if (researchActiveIndicator != null)
         {
-            PlayerPrefs.SetInt($"tech_{tech.id}_level", tech.currentLevel);
-            PlayerPrefs.SetInt($"tech_{tech.id}_unlocked", tech.isUnlocked ? 1 : 0);
+            researchActiveIndicator.SetActive(selectedTechnology.isResearchInProgress);
         }
-        PlayerPrefs.Save();
-        Debug.Log("Прогресс технологий сохранен");
-    }
-
-    void LoadTechnologyProgress()
-    {
-        foreach (var tech in allTechnologies)
-        {
-            tech.currentLevel = PlayerPrefs.GetInt($"tech_{tech.id}_level", 0);
-            tech.isUnlocked = PlayerPrefs.GetInt($"tech_{tech.id}_unlocked",
-                tech.requiredTechIds.Count == 0 ? 1 : 0) == 1;
-        }
-
-        // Проверяем разблокировки после загрузки
-        CheckTechnologyUnlocks();
-        Debug.Log("Прогресс технологий загружен");
-    }
-
-    #region ПУБЛИЧНЫЕ МЕТОДЫ
-
-
-    public bool IsAnyTechnologyResearching()
-    {
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel < tech.maxLevel && tech.isUnlocked && tech.HasRequirementsMet())
-            {
-                // Если есть доступные технологии для исследования
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Technology GetResearchingTechnology()
-    {
-        // Возвращаем первую доступную технологию для исследования
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel < tech.maxLevel && tech.isUnlocked && tech.HasRequirementsMet())
-            {
-                return tech;
-            }
-        }
-        return null;
-    }
-
-    public void RegisterResearcher()
-    {
-        // В новой системе исследований это не нужно, но оставим для совместимости
-        Debug.Log("Исследователь зарегистрирован");
-    }
-
-    public void UnregisterResearcher()
-    {
-        // В новой системе исследований это не нужно, но оставим для совместимости
-        Debug.Log("Исследователь удален");
     }
 
     public Technology GetTechnology(string techId)
@@ -964,230 +954,79 @@ public class TechnologyManager : MonoBehaviour
         return allTechnologies.Find(t => t.id == techId);
     }
 
-    public int GetClickWarmleafBonus()
+    public Technology GetCurrentResearch()
     {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += Mathf.RoundToInt(tech.clickWarmleafBonus * tech.currentLevel);
-            }
-        }
-        return totalBonus;
+        return currentResearchingTechnology;
     }
 
-    public int GetClickMiralliteBonus()
+    public bool IsAnyTechnologyResearching()
     {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += Mathf.RoundToInt(tech.clickMiralliteBonus * tech.currentLevel);
-            }
-        }
-        return totalBonus;
+        return currentResearchingTechnology != null && currentResearchingTechnology.isResearchInProgress;
     }
 
-    public int GetClickThunderiteBonus()
+    public bool IsAnyOtherTechnologyResearching(Technology techToIgnore)
     {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += Mathf.RoundToInt(tech.clickThunderiteBonus * tech.currentLevel);
-            }
-        }
-        return totalBonus;
+        if (currentResearchingTechnology == null)
+            return false;
+
+        return currentResearchingTechnology != techToIgnore &&
+               currentResearchingTechnology.isResearchInProgress;
     }
 
-    public int GetWorkerWarmleafBonus()
+    public bool CanStartResearch(Technology tech)
     {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += Mathf.RoundToInt(tech.workerWarmleafBonus * tech.currentLevel);
-            }
-        }
-        return totalBonus;
+        if (tech == null) return false;
+
+        if (tech.currentLevel >= tech.maxLevel)
+            return false;
+
+        if (!tech.HasRequirementsMet())
+            return false;
+
+        if (tech.isResearchInProgress)
+            return false;
+
+        if (IsAnyOtherTechnologyResearching(tech))
+            return false;
+
+        return true;
     }
 
-    public int GetWorkerThunderiteBonus()
+    public void ClearCurrentResearchingTechnology()
     {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += Mathf.RoundToInt(tech.workerThunderiteBonus * tech.currentLevel);
-            }
-        }
-        return totalBonus;
+        currentResearchingTechnology = null;
     }
 
-    public int GetWorkerMiralliteBonus()
+    void SaveTechnologyProgress()
     {
-        int totalBonus = 0;
         foreach (var tech in allTechnologies)
         {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += Mathf.RoundToInt(tech.workerMiralliteBonus * tech.currentLevel);
-            }
+            PlayerPrefs.SetInt($"tech_{tech.id}_level", tech.currentLevel);
+            PlayerPrefs.SetInt($"tech_{tech.id}_progress", tech.currentResourceAmount);
+            PlayerPrefs.SetInt($"tech_{tech.id}_researching", tech.isResearchInProgress ? 1 : 0);
         }
-        return totalBonus;
+        PlayerPrefs.Save();
     }
 
-    public int GetCarryCapacityBonus()
+    void LoadTechnologyProgress()
     {
-        int totalBonus = 0;
         foreach (var tech in allTechnologies)
         {
-            if (tech.currentLevel > 0)
+            tech.currentLevel = PlayerPrefs.GetInt($"tech_{tech.id}_level", 0);
+            tech.currentResourceAmount = PlayerPrefs.GetInt($"tech_{tech.id}_progress", 0);
+            tech.isResearchInProgress = PlayerPrefs.GetInt($"tech_{tech.id}_researching", 0) == 1;
+
+            if (tech.currentLevel < tech.maxLevel)
             {
-                totalBonus += tech.carryCapacityBonus * tech.currentLevel;
+                tech.InitializeForLevel(tech.currentLevel + 1);
             }
         }
-        return totalBonus;
     }
 
-    public float GetColonistSpeedBonus()
+    public void ApplyTechnologyBonuses(Technology tech)
     {
-        float totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.colonistSpeedBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
+        Debug.Log($"Применены бонусы от технологии: {tech.displayName} (ур. {tech.currentLevel})");
     }
-
-    public int GetColonistCapacityBonus()
-    {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.colonistCapacityBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
-    }
-
-    public int GetResearchSlotsBonus()
-    {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.researchSlotsBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
-    }
-
-    public float GetAnomalyDurationBonus()
-    {
-        float totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.anomalyDurationBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
-    }
-
-    public float GetColonistWeightBonus()
-    {
-        float totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.colonistWeightBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
-    }
-
-    public int GetEnricherCapacityBonus()
-    {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.enricherCapacityBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
-    }
-
-    public float GetResearchSaveChanceBonus()
-    {
-        float totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.researchSaveChanceBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
-    }
-
-    public float GetFoodConsumptionReduction()
-    {
-        float totalReduction = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalReduction += tech.foodConsumptionReduction * tech.currentLevel;
-            }
-        }
-        return totalReduction;
-    }
-
-    public int GetMiralliteDurabilityBonus()
-    {
-        int totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.miralliteDurabilityBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
-    }
-
-    public float GetMiralliteRegenBonus()
-    {
-        float totalBonus = 0;
-        foreach (var tech in allTechnologies)
-        {
-            if (tech.currentLevel > 0)
-            {
-                totalBonus += tech.miralliteRegenBonus * tech.currentLevel;
-            }
-        }
-        return totalBonus;
-    }
-
-    #endregion
-
-    #region УТИЛИТЫ
 
     private void ShowNotification(string message)
     {
@@ -1201,28 +1040,180 @@ public class TechnologyManager : MonoBehaviour
         }
     }
 
-    public void LogAllTechnologies()
+    #region ПУБЛИЧНЫЕ МЕТОДЫ ДЛЯ БОНУСОВ
+
+    public int GetClickWarmleafBonus()
     {
-        Debug.Log("=== ВСЕ ТЕХНОЛОГИИ ===");
+        int totalBonus = 0;
         foreach (var tech in allTechnologies)
         {
-            string unlocked = tech.isUnlocked ? "[ДОСТУПНО]" : "[ЗАБЛОКИРОВАНО]";
-            string requirements = tech.HasRequirementsMet() ? "" : " [ТРЕБОВАНИЯ НЕ ВЫПОЛНЕНЫ]";
-            Debug.Log($"{tech.displayName}: Ур. {tech.currentLevel}/{tech.maxLevel} {unlocked}{requirements}");
-            Debug.Log($"  След. уровень: {tech.GetCostString(tech.currentLevel + 1)}");
+            if (tech.currentLevel > 0) totalBonus += Mathf.RoundToInt(tech.clickWarmleafBonus * tech.currentLevel);
         }
+        return totalBonus;
     }
 
-    public void ResetAllTechnologies()
+    public int GetClickMiralliteBonus()
     {
+        int totalBonus = 0;
         foreach (var tech in allTechnologies)
         {
-            tech.currentLevel = 0;
-            tech.isUnlocked = tech.requiredTechIds.Count == 0;
+            if (tech.currentLevel > 0) totalBonus += Mathf.RoundToInt(tech.clickMiralliteBonus * tech.currentLevel);
         }
-        PlayerPrefs.DeleteAll();
-        Debug.Log("Все технологии сброшены");
-        UpdateTechnologyUI();
+        return totalBonus;
+    }
+
+    public int GetClickThunderiteBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += Mathf.RoundToInt(tech.clickThunderiteBonus * tech.currentLevel);
+        }
+        return totalBonus;
+    }
+
+    public int GetWorkerWarmleafBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += Mathf.RoundToInt(tech.workerWarmleafBonus * tech.currentLevel);
+        }
+        return totalBonus;
+    }
+
+    public int GetWorkerThunderiteBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += Mathf.RoundToInt(tech.workerThunderiteBonus * tech.currentLevel);
+        }
+        return totalBonus;
+    }
+
+    public int GetWorkerMiralliteBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += Mathf.RoundToInt(tech.workerMiralliteBonus * tech.currentLevel);
+        }
+        return totalBonus;
+    }
+
+    public int GetCarryCapacityBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.carryCapacityBonus * tech.currentLevel;
+        }
+        return totalBonus;
+    }
+
+    public float GetColonistSpeedBonus()
+    {
+        float totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.colonistSpeedBonus * tech.currentLevel;
+        }
+        return totalBonus;
+    }
+
+    public int GetColonistCapacityBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.colonistCapacityBonus * tech.currentLevel;
+        }
+        return totalBonus;
+    }
+
+    public int GetResearchSlotsBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0)
+            {
+                // Каждый уровень технологии дает +1 слот
+                totalBonus += tech.researchSlotsBonus * tech.currentLevel;
+            }
+        }
+        return totalBonus;
+    }
+
+    public float GetAnomalyDurationBonus()
+    {
+        float totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.anomalyDurationBonus * tech.currentLevel;
+        }
+        return totalBonus;
+    }
+
+    public float GetColonistWeightBonus()
+    {
+        float totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.colonistWeightBonus * tech.currentLevel;
+        }
+        return totalBonus;
+    }
+
+    public int GetEnricherCapacityBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.enricherCapacityBonus * tech.currentLevel;
+        }
+        return totalBonus;
+    }
+
+    public float GetResearchSaveChanceBonus()
+    {
+        float totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.researchSaveChanceBonus * tech.currentLevel;
+        }
+        return totalBonus;
+    }
+
+    public float GetFoodConsumptionReduction()
+    {
+        float totalReduction = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalReduction += tech.foodConsumptionReduction * tech.currentLevel;
+        }
+        return totalReduction;
+    }
+
+    public int GetMiralliteDurabilityBonus()
+    {
+        int totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.miralliteDurabilityBonus * tech.currentLevel;
+        }
+        return totalBonus;
+    }
+
+    public float GetMiralliteRegenBonus()
+    {
+        float totalBonus = 0;
+        foreach (var tech in allTechnologies)
+        {
+            if (tech.currentLevel > 0) totalBonus += tech.miralliteRegenBonus * tech.currentLevel;
+        }
+        return totalBonus;
     }
 
     #endregion

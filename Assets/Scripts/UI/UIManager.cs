@@ -456,7 +456,19 @@ public class UIManager : MonoBehaviour
                     buildingManager.StartBuildingResearchStation();
                     break;
                 case 3:
-                    buildingManager.StartBuildingEnricher();
+                    // Проверяем разблокирован ли обогатитель
+                    if (TechnologyManager.Instance != null)
+                    {
+                        var tech = TechnologyManager.Instance.GetTechnology("mirallite_enrichment");
+                        if (tech != null && tech.currentLevel > 0)
+                        {
+                            buildingManager.StartBuildingEnricher();
+                        }
+                        else
+                        {
+                            ShowNotification("Обогатитель не разблокирован!");
+                        }
+                    }
                     break;
                 default:
                     Debug.LogError($"Неизвестный индекс здания: {index}");

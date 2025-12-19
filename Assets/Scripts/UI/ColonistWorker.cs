@@ -900,8 +900,17 @@ public class ColonistWorker : MonoBehaviour
 
     protected virtual void DeliverResources()
     {
+        // ƒл€ обычных рабочих - стандартна€ логика
         if (resourceManager == null || !HasResourcesToDeliver()) return;
 
+        // ≈сли это исследователь - его логика доставки в WorkCycle
+        if (this is ResearchStationWorker)
+        {
+            // »сследователи обрабатывают доставку в своем WorkCycle
+            return;
+        }
+
+        // —тандартна€ логика дл€ других рабочих
         if (carriedWarmleaf > 0)
         {
             resourceManager.AddResource("warmleaf", carriedWarmleaf);
@@ -920,6 +929,7 @@ public class ColonistWorker : MonoBehaviour
             carriedMirallite = 0;
         }
     }
+
 
     // ¬спомогательные методы дл€ пути
     private Vector3 CalculateOptimalAvoidance(Vector3 start, Vector3 target, Vector3 obstacle)

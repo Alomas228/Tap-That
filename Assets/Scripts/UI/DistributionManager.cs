@@ -7,13 +7,13 @@ public class DistributionManager : MonoBehaviour
 {
     public static DistributionManager Instance { get; private set; }
 
-    [Header("UI Тексты распределения")]
+    [Header("UI элементы распределения")]
     [SerializeField] private TextMeshProUGUI warmleafStationText;
     [SerializeField] private TextMeshProUGUI researchStationText;
     [SerializeField] private TextMeshProUGUI enricherText;
     [SerializeField] private TextMeshProUGUI occupiedText;
 
-    [Header("Кнопки управления")]
+    [Header("Кнопки распределения")]
     [SerializeField] private Button processingPlusBtn;
     [SerializeField] private Button processingMinusBtn;
     [SerializeField] private Button researchPlusBtn;
@@ -21,20 +21,24 @@ public class DistributionManager : MonoBehaviour
     [SerializeField] private Button enricherPlusBtn;
     [SerializeField] private Button enricherMinusBtn;
 
-    [Header("Колонисты-рабочие")]
+    [Header("Префабы")]
     [SerializeField] private GameObject colonistWorkerPrefab;
     [SerializeField] private Transform colonistWorkerContainer;
 
-    [Header("Визуальные эффекты для недоступных зданий")]
+    [Header("Цвета для неактивных кнопок")]
     [SerializeField] private Color disabledButtonColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
     [SerializeField] private Color disabledTextColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+
+    [Header("Настройки ограничений")]
+    [SerializeField] private int maxResearchWorkers = 5; // Максимум 5 исследователей
+    [SerializeField] private int maxWorkersPerBuilding = 999; // Практически неограничено для других
 
     // Количество рабочих на каждом здании
     private int processingWorkers = 0;
     private int researchWorkers = 0;
     private int enricherWorkers = 0;
 
-    // Ссылки на менеджеры
+    // Менеджеры
     private ColonistManager colonistManager;
     private BuildingManager buildingManager;
 
@@ -43,11 +47,11 @@ public class DistributionManager : MonoBehaviour
     private bool hasResearchStation = false;
     private bool hasEnricher = false;
 
-    // Словари для управления
+    // Словари для хранения рабочих
     private Dictionary<BuildingType, List<ColonistWorker>> buildingWorkers = new();
     private Dictionary<BuildingType, List<Transform>> availableBuildings = new();
 
-    // Данные зданий для сравнения
+    // Данные зданий
     private BuildingData warmleafStationData;
     private BuildingData researchStationData;
     private BuildingData enricherData;
@@ -94,11 +98,14 @@ public class DistributionManager : MonoBehaviour
 
     void Update()
     {
-        if (Time.frameCount % 120 == 0) // Каждые 2 секунды при 60 FPS
+        if (Time.frameCount % 120 == 0)
         {
             CheckBuildingsExistence(false);
             UpdateAvailableBuildings();
             UpdateButtonsVisualState();
+
+            // Обновляем максимум исследователей с учетом технологий
+            UpdateMaxResearchWorkers();
         }
     }
 
@@ -110,7 +117,20 @@ public class DistributionManager : MonoBehaviour
         }
     }
 
-    #region ОБРАБОТКА СОБЫТИЙ КОЛОНИСТОВ
+    private void UpdateMaxResearchWorkers()
+    {
+        int baseMax = 5;
+        int techBonus = 0;
+
+        if (TechnologyManager.Instance != null)
+        {
+            techBonus = TechnologyManager.Instance.GetResearchSlotsBonus();
+        }
+
+        maxResearchWorkers = baseMax + techBonus;
+    }
+
+    #region Обработка изменений колонистов
 
     private void OnColonistChanged(int total, int available, int capacity, int queueLength, float patience)
     {
@@ -119,7 +139,7 @@ public class DistributionManager : MonoBehaviour
 
     #endregion
 
-    #region УПРАВЛЕНИЕ ЗДАНИЯМИ
+    #region Проверка зданий
 
     private void CheckBuildingsExistence(bool logChanges = false)
     {
@@ -137,9 +157,8 @@ public class DistributionManager : MonoBehaviour
                           prevResearch != hasResearchStation ||
                           prevEnricher != hasEnricher))
         {
-            Debug.Log($"Состояние зданий обновлено: " +
-                     $"Обработка={hasProcessingStation}, " +
-                     $"Исследования={hasResearchStation}, " +
+            Debug.Log($"Наличие зданий: Обработка={hasProcessingStation}, " +
+                     $"Исследование={hasResearchStation}, " +
                      $"Обогатитель={hasEnricher}");
         }
     }
@@ -154,56 +173,32 @@ public class DistributionManager : MonoBehaviour
         if (buildingManager == null) return;
 
         Building[] allBuildings = FindObjectsByType<Building>(FindObjectsSortMode.None);
-        int buildingsFound = 0;
 
         foreach (var building in allBuildings)
         {
-            // Пропускаем главное здание и жилища
             if (building is MainBuilding) continue;
 
             BuildingData data = building.GetBuildingData();
             if (data == null || !building.IsBuilt()) continue;
 
-            // Проверяем тип здания
-            BuildingType type = BuildingType.ProcessingStation; // По умолчанию
-
             if (data == warmleafStationData)
             {
-                type = BuildingType.ProcessingStation;
-                availableBuildings[type].Add(building.transform);
-                buildingsFound++;
-               
+                availableBuildings[BuildingType.ProcessingStation].Add(building.transform);
             }
             else if (data == researchStationData)
             {
-                type = BuildingType.ResearchStation;
-                availableBuildings[type].Add(building.transform);
-                buildingsFound++;
-                
+                availableBuildings[BuildingType.ResearchStation].Add(building.transform);
             }
             else if (data == enricherData)
             {
-                type = BuildingType.Enricher;
-                availableBuildings[type].Add(building.transform);
-                buildingsFound++;
-               
-            }
-            else if (data == houseData)
-            {
-                // Жилище - не рабочее здание, пропускаем
-                continue;
-            }
-            else
-            {
-                Debug.LogWarning($"Неизвестный тип здания: {data.buildingName}");
+                availableBuildings[BuildingType.Enricher].Add(building.transform);
             }
         }
-
     }
 
     #endregion
 
-    #region ИНИЦИАЛИЗАЦИЯ КНОПОК
+    #region Настройка UI
 
     private void InitializeButtons()
     {
@@ -229,6 +224,12 @@ public class DistributionManager : MonoBehaviour
         UpdateButtonSet(processingPlusBtn, processingMinusBtn, hasProcessingStation);
         UpdateButtonSet(researchPlusBtn, researchMinusBtn, hasResearchStation);
         UpdateButtonSet(enricherPlusBtn, enricherMinusBtn, hasEnricher);
+
+        // Для исследовательской станции проверяем лимит
+        if (researchPlusBtn != null)
+        {
+            researchPlusBtn.interactable = hasResearchStation && researchWorkers < maxResearchWorkers;
+        }
     }
 
     private void UpdateButtonSet(Button plusBtn, Button minusBtn, bool hasBuilding)
@@ -259,7 +260,7 @@ public class DistributionManager : MonoBehaviour
 
     #endregion
 
-    #region ОБНОВЛЕНИЕ UI
+    #region Обновление UI
 
     private void UpdateAllUI()
     {
@@ -278,7 +279,7 @@ public class DistributionManager : MonoBehaviour
 
         if (researchStationText != null)
         {
-            researchStationText.text = hasResearchStation ? researchWorkers.ToString() : "0";
+            researchStationText.text = hasResearchStation ? $"{researchWorkers}/{maxResearchWorkers}" : "0/5";
             researchStationText.color = hasResearchStation ? Color.white : disabledTextColor;
         }
 
@@ -301,13 +302,13 @@ public class DistributionManager : MonoBehaviour
 
     #endregion
 
-    #region ОСНОВНЫЕ МЕТОДЫ РАСПРЕДЕЛЕНИЯ
+    #region Логика добавления/удаления рабочих
 
     public void AddProcessingWorker()
     {
         if (!hasProcessingStation)
         {
-            ShowNotification("Станция обработки теплолиста не построена!");
+            ShowNotification("Станция обработки не построена!");
             return;
         }
 
@@ -324,7 +325,13 @@ public class DistributionManager : MonoBehaviour
     {
         if (!hasResearchStation)
         {
-            ShowNotification("Станция исследования не построена!");
+            ShowNotification("Исследовательская станция не построена!");
+            return;
+        }
+
+        if (researchWorkers >= maxResearchWorkers)
+        {
+            ShowNotification($"Максимум {maxResearchWorkers} исследователей!");
             return;
         }
 
@@ -410,7 +417,7 @@ public class DistributionManager : MonoBehaviour
 
     #endregion
 
-    #region УПРАВЛЕНИЕ КОЛОНИСТАМИ-РАБОЧИМИ
+    #region Создание и удаление колонистов
 
     private void CreateColonistWorker(BuildingType buildingType)
     {
@@ -420,16 +427,15 @@ public class DistributionManager : MonoBehaviour
             return;
         }
 
-        // Получаем здание для назначения
+        // Находим здание для работы
         Transform building = GetAvailableBuilding(buildingType);
         if (building == null)
         {
             Debug.LogError($"Нет доступных зданий типа {buildingType}!");
-            ShowNotification($"Нет построенных зданий типа {buildingType}!");
+            ShowNotification($"Нет доступных зданий типа {buildingType}!");
             return;
         }
 
-        // Проверяем что это правильный тип здания
         Building buildingComponent = building.GetComponent<Building>();
         if (buildingComponent == null)
         {
@@ -445,7 +451,7 @@ public class DistributionManager : MonoBehaviour
         GameObject colonistObj = Instantiate(colonistWorkerPrefab, spawnPos, Quaternion.identity, colonistWorkerContainer);
         colonistObj.name = $"ColonistWorker_{buildingType}_{System.Guid.NewGuid().ToString("N").Substring(0, 4)}";
 
-        // Добавляем соответствующий скрипт
+        // Добавляем нужный компонент
         ColonistWorker worker = null;
         switch (buildingType)
         {
@@ -473,7 +479,7 @@ public class DistributionManager : MonoBehaviour
             // Назначаем на здание
             worker.AssignToBuilding(building);
 
-            // Сохраняем в словарь
+            // Добавляем в словарь
             if (!buildingWorkers.ContainsKey(buildingType))
             {
                 buildingWorkers[buildingType] = new List<ColonistWorker>();
@@ -489,7 +495,7 @@ public class DistributionManager : MonoBehaviour
         if (!buildingWorkers.ContainsKey(buildingType) || buildingWorkers[buildingType].Count == 0)
             return;
 
-        // Удаляем первого рабочего в списке
+        // Удаляем первого рабочего
         ColonistWorker workerToRemove = buildingWorkers[buildingType][0];
         buildingWorkers[buildingType].RemoveAt(0);
 
@@ -504,45 +510,14 @@ public class DistributionManager : MonoBehaviour
     {
         if (availableBuildings.ContainsKey(buildingType) && availableBuildings[buildingType].Count > 0)
         {
-            // Распределяем рабочих равномерно по зданиям
+            // Распределяем рабочих по зданиям
             int buildingIndex = 0;
             if (buildingWorkers.ContainsKey(buildingType))
             {
                 buildingIndex = buildingWorkers[buildingType].Count % availableBuildings[buildingType].Count;
             }
 
-            Transform building = availableBuildings[buildingType][buildingIndex];
-
-            // Проверяем тип здания
-            Building buildingComponent = building.GetComponent<Building>();
-            if (buildingComponent != null)
-            {
-                BuildingData data = buildingComponent.GetBuildingData();
-
-                // Дополнительная проверка типа здания
-                bool isCorrectType = false;
-                switch (buildingType)
-                {
-                    case BuildingType.ProcessingStation:
-                        isCorrectType = data == warmleafStationData;
-                        break;
-                    case BuildingType.ResearchStation:
-                        isCorrectType = data == researchStationData;
-                        break;
-                    case BuildingType.Enricher:
-                        isCorrectType = data == enricherData;
-                        break;
-                }
-
-                if (!isCorrectType)
-                {
-                    Debug.LogError($"Ошибка! Здание {building.name} имеет тип {data?.buildingName}, " +
-                                 $"но ожидается {buildingType}");
-                    return null;
-                }
-            }
-
-            return building;
+            return availableBuildings[buildingType][buildingIndex];
         }
 
         Debug.LogWarning($"Нет доступных зданий типа {buildingType}");
@@ -564,7 +539,7 @@ public class DistributionManager : MonoBehaviour
 
     #endregion
 
-    #region ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
+    #region Вспомогательные методы
 
     private bool HasAvailableColonists()
     {
@@ -590,6 +565,16 @@ public class DistributionManager : MonoBehaviour
     public int GetTotalAssignedWorkers()
     {
         return processingWorkers + researchWorkers + enricherWorkers;
+    }
+
+    public int GetMaxResearchWorkers()
+    {
+        return maxResearchWorkers;
+    }
+
+    public int GetCurrentResearchWorkers()
+    {
+        return researchWorkers;
     }
 
     private void ShowNotification(string message)

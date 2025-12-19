@@ -80,7 +80,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -8930027434333298182, guid: 49e856243f6fa3b4c8f8648e0a3ba942, type: 3}
+  m_Sprite: {fileID: 648982572011946727, guid: 21a4813438def2e4caa65fa9df4411e2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -129,7 +129,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.6, y: 1.6}
+    oldSize: {x: 3.32, y: 5.21}
     newSize: {x: 1.6, y: 1.6}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -176,19 +176,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5995bf0125a56154ca5322a94b939336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2
+  baseMoveSpeed: 2
   interactionRange: 1
-  obstacleCheckDistance: 1
-  obstacleAvoidanceDistance: 2
+  rotationSpeed: 10
+  stuckCheckInterval: 0.5
+  stuckTimeThreshold: 2
+  stuckMoveThreshold: 0.2
+  stuckResetDistance: 2
+  buildingAvoidanceRadius: 3
+  obstacleDetectionRadius: 1.5
+  buildingLayer:
+    serializedVersion: 2
+    m_Bits: 0
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 8
-  maxRayDirections: 8
-  rayAngleStep: 45
-  rotationSmoothness: 5
-  speedSmoothness: 3
+  maxSearchDepth: 50
+  nodeSize: 0.5
+  usePathSmoothing: 1
+  pathUpdateInterval: 0.5
   visualObject: {fileID: 8844551129221131688}
   spriteRenderer: {fileID: 63405015834070212}
+  pathDebugColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1 &8844551129221131688
 GameObject:
   m_ObjectHideFlags: 0
