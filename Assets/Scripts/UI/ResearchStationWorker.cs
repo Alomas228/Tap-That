@@ -73,7 +73,8 @@ public class ResearchStationWorker : ColonistWorker
             bool gotResource = false;
             int takeAmount = 0;
 
-            var currentResearch = TechnologyManager.Instance?.GetCurrentResearch();
+            // ИСПРАВЛЕНО: Используем правильный метод
+            var currentResearch = TechnologyManager.Instance != null ? TechnologyManager.Instance.GetCurrentResearch() : null;
             if (currentResearch != null)
             {
                 currentResourceType = currentResearch.GetPrimaryResourceType();
@@ -250,6 +251,7 @@ public class ResearchStationWorker : ColonistWorker
             return false;
         }
 
+        // ИСПРАВЛЕНО: Используем правильный метод
         var currentResearch = TechnologyManager.Instance.GetCurrentResearch();
         if (currentResearch == null)
         {

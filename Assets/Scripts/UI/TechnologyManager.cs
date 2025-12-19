@@ -85,7 +85,6 @@ public class TechnologyManager : MonoBehaviour
             if (level <= 0 || level > maxLevel) return;
 
             requiredResourceAmount = CalculateTotalCostForLevel(level);
-            currentResourceAmount = 0;
         }
 
         public int CalculateTotalCostForLevel(int level)
@@ -233,8 +232,7 @@ public class TechnologyManager : MonoBehaviour
         public bool CanStartResearch()
         {
             return currentLevel < maxLevel &&
-                   HasRequirementsMet() &&
-                   !isResearchInProgress;
+                   HasRequirementsMet();
         }
 
         public string GetPrimaryResourceType()
@@ -265,17 +263,32 @@ public class TechnologyManager : MonoBehaviour
             return false;
         }
 
+        public void StopResearch()
+        {
+            // Просто выключаем флаг исследования, прогресс сохраняется
+            isResearchInProgress = false;
+            Debug.Log($"Исследование {displayName} остановлено. Прогресс: {currentResourceAmount}/{requiredResourceAmount}");
+        }
+
+        public void StartResearch()
+        {
+            // Включаем исследование
+            isResearchInProgress = true;
+
+            // Если это первый раз, когда начинаем исследование этого уровня, инициализируем
+            if (currentResourceAmount == 0 && requiredResourceAmount == 0)
+            {
+                InitializeForLevel(currentLevel + 1);
+            }
+
+            Debug.Log($"Исследование {displayName} начато/возобновлено. Прогресс: {currentResourceAmount}/{requiredResourceAmount}");
+        }
+
         private void CompleteResearch()
         {
             currentLevel++;
             currentResourceAmount = 0;
             isResearchInProgress = false;
-
-            // Сбрасываем текущее исследование в менеджере
-            if (TechnologyManager.Instance != null)
-            {
-                TechnologyManager.Instance.ClearCurrentResearchingTechnology();
-            }
 
             if (currentLevel >= maxLevel)
             {
@@ -298,7 +311,7 @@ public class TechnologyManager : MonoBehaviour
 
     [Header("Текущее выбранное исследование")]
     public Technology selectedTechnology = null;
-    public Technology currentResearchingTechnology = null; // Текущая исследуемая технология
+    public Technology activeResearchingTechnology = null; // Активно исследуемая технология в данный момент
 
     [Header("Ссылки на UI")]
     public GameObject technologyPanel;
@@ -345,17 +358,21 @@ public class TechnologyManager : MonoBehaviour
         {
             if (tech.currentLevel < tech.maxLevel)
             {
-                tech.InitializeForLevel(tech.currentLevel + 1);
+                // Если есть сохраненный прогресс, не переинициализируем
+                if (tech.currentResourceAmount == 0 && tech.requiredResourceAmount == 0)
+                {
+                    tech.InitializeForLevel(tech.currentLevel + 1);
+                }
             }
         }
 
-        // Восстанавливаем текущее исследование
+        // Находим активное исследование (если есть)
         foreach (var tech in allTechnologies)
         {
             if (tech.isResearchInProgress)
             {
-                currentResearchingTechnology = tech;
-                Debug.Log($"Восстановлено текущее исследование: {tech.displayName}");
+                activeResearchingTechnology = tech;
+                Debug.Log($"Восстановлено активное исследование: {tech.displayName}");
                 break;
             }
         }
@@ -781,56 +798,82 @@ public class TechnologyManager : MonoBehaviour
             return;
         }
 
-        // Проверяем, не ведется ли уже исследование ДРУГОЙ технологии
-        if (IsAnyOtherTechnologyResearching(selectedTechnology))
-        {
-            ShowNotification($"Уже ведется исследование: {currentResearchingTechnology.displayName}");
-            return;
-        }
-
-        if (selectedTechnology.isResearchInProgress)
-        {
-            ShowNotification("Исследование уже идет!");
-            return;
-        }
-
         if (!selectedTechnology.HasRequirementsMet())
         {
             ShowNotification("Требования не выполнены!");
             return;
         }
 
-        // Назначаем текущее исследование
-        currentResearchingTechnology = selectedTechnology;
+        // Если эта технология уже исследуется - останавливаем ее
+        if (selectedTechnology.isResearchInProgress)
+        {
+            selectedTechnology.StopResearch();
+            activeResearchingTechnology = null;
+            ShowNotification($"Исследование {selectedTechnology.displayName} остановлено");
+        }
+        else
+        {
+            // Если есть другая активная технология - останавливаем ее
+            if (activeResearchingTechnology != null && activeResearchingTechnology != selectedTechnology)
+            {
+                activeResearchingTechnology.StopResearch();
+                ShowNotification($"Исследование {activeResearchingTechnology.displayName} приостановлено");
+            }
 
-        // НАЧИНАЕМ ИССЛЕДОВАНИЕ
-        selectedTechnology.isResearchInProgress = true;
-        selectedTechnology.InitializeForLevel(selectedTechnology.currentLevel + 1);
+            // Начинаем/возобновляем исследование выбранной технологии
+            selectedTechnology.StartResearch();
+            activeResearchingTechnology = selectedTechnology;
+            ShowNotification($"Исследование {selectedTechnology.displayName} начато");
+        }
 
-        ShowNotification($"Начато исследование: {selectedTechnology.displayName}");
         SaveTechnologyProgress();
         UpdateTechnologyUI();
 
-        Debug.Log($"Исследование начато: {selectedTechnology.displayName}. " +
-                 $"Требуется ресурсов: {selectedTechnology.requiredResourceAmount}");
+        Debug.Log($"Активное исследование: {activeResearchingTechnology?.displayName}");
     }
 
     public bool AddResearchProgress(string resourceType, int amount)
     {
-        foreach (var tech in allTechnologies)
+        // Добавляем прогресс только в активную технологию
+        if (activeResearchingTechnology != null &&
+            activeResearchingTechnology.IsReadyForResearch() &&
+            activeResearchingTechnology.GetPrimaryResourceType() == resourceType)
         {
-            if (tech.IsReadyForResearch() && tech.GetPrimaryResourceType() == resourceType)
+            bool completed = activeResearchingTechnology.AcceptResource(resourceType, amount);
+            if (completed)
             {
-                bool completed = tech.AcceptResource(resourceType, amount);
-                if (completed)
+                ShowNotification($"Завершено исследование: {activeResearchingTechnology.displayName} (ур. {activeResearchingTechnology.currentLevel})");
+
+                // После завершения исследования, активная технология сбрасывается
+                activeResearchingTechnology = null;
+
+                // Ищем следующую доступную технологию для авто-переключения
+                Technology nextTech = FindNextAvailableTechnology();
+                if (nextTech != null && nextTech.CanStartResearch())
                 {
-                    ShowNotification($"Завершено исследование: {tech.displayName} (ур. {tech.currentLevel})");
+                    nextTech.StartResearch();
+                    activeResearchingTechnology = nextTech;
+                    ShowNotification($"Автоматически начато исследование: {nextTech.displayName}");
                 }
-                UpdateTechnologyUI();
-                return true;
             }
+            UpdateTechnologyUI();
+            return true;
         }
         return false;
+    }
+
+    Technology FindNextAvailableTechnology()
+    {
+        foreach (var tech in allTechnologies)
+        {
+            if (tech != activeResearchingTechnology &&
+                tech.CanStartResearch() &&
+                !tech.isResearchInProgress)
+            {
+                return tech;
+            }
+        }
+        return null;
     }
 
     void UpdateTechnologyUI()
@@ -872,6 +915,11 @@ public class TechnologyManager : MonoBehaviour
                 progressText.text = $"Прогресс: {selectedTechnology.currentResourceAmount}/{selectedTechnology.requiredResourceAmount}";
                 progressText.color = Color.cyan;
             }
+            else if (selectedTechnology.currentResourceAmount > 0)
+            {
+                progressText.text = $"Сохраненный прогресс: {selectedTechnology.currentResourceAmount}/{selectedTechnology.requiredResourceAmount}";
+                progressText.color = Color.yellow;
+            }
             else
             {
                 progressText.text = "Не исследуется";
@@ -881,8 +929,9 @@ public class TechnologyManager : MonoBehaviour
 
         if (progressSlider != null)
         {
-            progressSlider.gameObject.SetActive(selectedTechnology.isResearchInProgress);
-            if (selectedTechnology.isResearchInProgress)
+            bool showSlider = selectedTechnology.isResearchInProgress || selectedTechnology.currentResourceAmount > 0;
+            progressSlider.gameObject.SetActive(showSlider);
+            if (showSlider)
             {
                 progressSlider.value = selectedTechnology.GetProgressPercentage();
             }
@@ -902,13 +951,18 @@ public class TechnologyManager : MonoBehaviour
             }
             else if (selectedTechnology.isResearchInProgress)
             {
-                statusText.text = "В процессе исследования";
-                statusText.color = Color.cyan;
+                statusText.text = "Активное исследование";
+                statusText.color = Color.green;
             }
-            else if (CanStartResearch(selectedTechnology))
+            else if (selectedTechnology.currentResourceAmount > 0)
+            {
+                statusText.text = "Есть сохраненный прогресс";
+                statusText.color = Color.yellow;
+            }
+            else if (selectedTechnology.CanStartResearch())
             {
                 statusText.text = "Готово к исследованию";
-                statusText.color = Color.green;
+                statusText.color = Color.cyan;
             }
             else
             {
@@ -919,21 +973,26 @@ public class TechnologyManager : MonoBehaviour
 
         if (researchButton != null)
         {
-            bool canResearch = CanStartResearch(selectedTechnology);
-            researchButton.interactable = canResearch;
+            bool canToggleResearch = selectedTechnology.CanStartResearch();
+            researchButton.interactable = canToggleResearch;
 
             TextMeshProUGUI buttonText = researchButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonText != null)
             {
-                if (canResearch)
+                if (selectedTechnology.isResearchInProgress)
                 {
-                    buttonText.text = "Начать исследование";
-                    buttonText.color = Color.white;
+                    buttonText.text = "Стоп";
+                    buttonText.color = Color.black;
                 }
-                else if (selectedTechnology.isResearchInProgress)
+                else if (selectedTechnology.currentResourceAmount > 0)
                 {
-                    buttonText.text = "В процессе";
-                    buttonText.color = Color.cyan;
+                    buttonText.text = "Изучить";
+                    buttonText.color = Color.black;
+                }
+                else if (canToggleResearch)
+                {
+                    buttonText.text = "Исследовать";
+                    buttonText.color = Color.black;
                 }
                 else
                 {
@@ -954,47 +1013,21 @@ public class TechnologyManager : MonoBehaviour
         return allTechnologies.Find(t => t.id == techId);
     }
 
+    // Метод для совместимости с ResearchStationWorker.cs
     public Technology GetCurrentResearch()
     {
-        return currentResearchingTechnology;
+        return activeResearchingTechnology;
+    }
+
+    // Алиас для GetCurrentResearch()
+    public Technology GetActiveResearch()
+    {
+        return activeResearchingTechnology;
     }
 
     public bool IsAnyTechnologyResearching()
     {
-        return currentResearchingTechnology != null && currentResearchingTechnology.isResearchInProgress;
-    }
-
-    public bool IsAnyOtherTechnologyResearching(Technology techToIgnore)
-    {
-        if (currentResearchingTechnology == null)
-            return false;
-
-        return currentResearchingTechnology != techToIgnore &&
-               currentResearchingTechnology.isResearchInProgress;
-    }
-
-    public bool CanStartResearch(Technology tech)
-    {
-        if (tech == null) return false;
-
-        if (tech.currentLevel >= tech.maxLevel)
-            return false;
-
-        if (!tech.HasRequirementsMet())
-            return false;
-
-        if (tech.isResearchInProgress)
-            return false;
-
-        if (IsAnyOtherTechnologyResearching(tech))
-            return false;
-
-        return true;
-    }
-
-    public void ClearCurrentResearchingTechnology()
-    {
-        currentResearchingTechnology = null;
+        return activeResearchingTechnology != null && activeResearchingTechnology.isResearchInProgress;
     }
 
     void SaveTechnologyProgress()
@@ -1016,7 +1049,12 @@ public class TechnologyManager : MonoBehaviour
             tech.currentResourceAmount = PlayerPrefs.GetInt($"tech_{tech.id}_progress", 0);
             tech.isResearchInProgress = PlayerPrefs.GetInt($"tech_{tech.id}_researching", 0) == 1;
 
-            if (tech.currentLevel < tech.maxLevel)
+            // Инициализируем requiredResourceAmount если есть прогресс
+            if (tech.currentResourceAmount > 0 && tech.currentLevel < tech.maxLevel)
+            {
+                tech.requiredResourceAmount = tech.CalculateTotalCostForLevel(tech.currentLevel + 1);
+            }
+            else if (tech.currentLevel < tech.maxLevel)
             {
                 tech.InitializeForLevel(tech.currentLevel + 1);
             }

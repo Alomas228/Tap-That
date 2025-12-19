@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Collections;
 public class MainBuilding : Building
 {
     [Header("Настройки главного здания")]
@@ -27,6 +27,25 @@ public class MainBuilding : Building
         if (initializeOnStart && !isInitialized)
         {
             InitializeMainBuilding();
+        }
+
+        // ДОБАВЬТЕ ЭТОТ КОД:
+        // Регистрируемся в GridManager после инициализации
+        if (isInitialized && GridManager.Instance != null)
+        {
+            StartCoroutine(RegisterWithGridManager());
+        }
+    }
+
+    private IEnumerator RegisterWithGridManager()
+    {
+        // Ждем 0.5 секунды чтобы GridManager успел инициализироваться
+        yield return new WaitForSeconds(0.5f);
+
+        if (GridManager.Instance != null && registerInGrid)
+        {
+            GridManager.Instance.RegisterBuildingOnGrid(this);
+            Debug.Log($"Главное здание '{mainBuildingData.buildingName}' зарегистрировано в GridManager");
         }
     }
 

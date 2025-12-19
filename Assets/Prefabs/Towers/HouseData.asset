@@ -17,7 +17,7 @@ MonoBehaviour:
   prefab: {fileID: 816067843155482287, guid: dcb7157a17830254884479b8d1ab7330, type: 3}
   icon: {fileID: 0}
   gridSize: {x: 1, y: 1}
-  baseCost: 1
+  baseCost: 20
   costType: 0
   hasProgressiveCost: 1
   isUnique: 0

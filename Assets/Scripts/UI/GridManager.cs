@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
+using System.Collections.Generic;
 
 public class GridManager : MonoBehaviour
 {
@@ -22,6 +23,9 @@ public class GridManager : MonoBehaviour
 
     [Header("Ресурсы на карте")]
     [SerializeField] private bool autoFindResourcesOnStart = true;
+
+    [Header("Главное здание")]
+    [SerializeField] private bool markMainBuildingOnStart = true;
 
     // Состояние
     private bool[,] occupiedCells;
@@ -64,6 +68,12 @@ public class GridManager : MonoBehaviour
         if (autoFindResourcesOnStart)
         {
             RegisterAllResourcesOnScene();
+        }
+
+        // Помечаем главное здание на сцене
+        if (markMainBuildingOnStart)
+        {
+            MarkAllBuildingsOnScene();
         }
     }
 
@@ -109,9 +119,6 @@ public class GridManager : MonoBehaviour
         }
 
         Debug.Log($"Заблокировано ячеек с коллизиями: {occupiedCount}");
-
-        // Также помечаем ячейки под главным зданием если оно уже на сцене
-        MarkMainBuildingCells();
     }
 
     private void CreateGridVisualization()
@@ -130,37 +137,61 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    private void MarkMainBuildingCells()
+    // НОВЫЙ МЕТОД: Пометить все здания на сцене
+    private void MarkAllBuildingsOnScene()
     {
-        // Исправляем устаревший метод FindObjectsOfType
-        MainBuilding[] mainBuildings = FindObjectsByType<MainBuilding>(FindObjectsSortMode.None);
+        // Находим все здания на сцене
+        Building[] allBuildings = FindObjectsByType<Building>(FindObjectsSortMode.None);
+        Debug.Log($"Найдено зданий на сцене: {allBuildings.Length}");
 
-        foreach (var mainBuilding in mainBuildings)
+        foreach (var building in allBuildings)
         {
-            if (mainBuilding.IsBuilt())
+            if (building.IsBuilt())
             {
-                Vector2Int gridPos = WorldToGridPosition(mainBuilding.transform.position);
-                BuildingData buildingData = mainBuilding.GetBuildingData();
+                RegisterBuildingOnGrid(building);
+            }
+        }
+    }
 
-                if (buildingData != null)
+    // НОВЫЙ МЕТОД: Регистрация здания в сетке
+    public void RegisterBuildingOnGrid(Building building)
+    {
+        if (building == null) return;
+
+        Vector2Int gridPos = WorldToGridPosition(building.transform.position);
+        BuildingData buildingData = building.GetBuildingData();
+
+        if (buildingData != null)
+        {
+            Debug.Log($"Регистрируем здание в сетке: {buildingData.buildingName} в {gridPos}, Размер: {buildingData.gridSize}");
+
+            // Помечаем все ячейки под зданием
+            for (int x = 0; x < buildingData.gridSize.x; x++)
+            {
+                for (int y = 0; y < buildingData.gridSize.y; y++)
                 {
-                    // Помечаем все ячейки под главным зданием
-                    for (int x = 0; x < buildingData.gridSize.x; x++)
-                    {
-                        for (int y = 0; y < buildingData.gridSize.y; y++)
-                        {
-                            Vector2Int cellPos = new(gridPos.x + x, gridPos.y + y);
+                    Vector2Int cellPos = new(gridPos.x + x, gridPos.y + y);
 
-                            if (IsWithinGrid(cellPos))
-                            {
-                                occupiedCells[cellPos.x, cellPos.y] = true;
-                            }
+                    if (IsWithinGrid(cellPos))
+                    {
+                        occupiedCells[cellPos.x, cellPos.y] = true;
+
+                        // Для отладки
+                        if (gridVisualization != null && gridVisualization[cellPos.x, cellPos.y] != null)
+                        {
+                            SpriteRenderer sr = gridVisualization[cellPos.x, cellPos.y].GetComponent<SpriteRenderer>();
+                            if (sr != null)
+                                sr.color = new Color(1, 0, 0, 0.5f);
                         }
                     }
-
-                    Debug.Log($"Главное здание зарегистрировано в сетке: {gridPos}, Размер: {buildingData.gridSize}");
                 }
             }
+
+            Debug.Log($"Здание '{buildingData.buildingName}' зарегистрировано в сетке: {gridPos}, Размер: {buildingData.gridSize}");
+        }
+        else
+        {
+            Debug.LogWarning($"Здание {building.name} не имеет BuildingData");
         }
     }
 
@@ -362,12 +393,21 @@ public class GridManager : MonoBehaviour
     {
         if (building == null || currentBuildingData == null) return;
 
-        // Помечаем ячейки как занятые
-        MarkCellsAsOccupied(gridPosition, currentBuildingData.gridSize, true);
+        Building buildingComponent = building.GetComponent<Building>();
+        if (buildingComponent != null)
+        {
+            RegisterBuildingOnGrid(buildingComponent);
+        }
+        else
+        {
+            // Для совместимости со старым кодом
+            MarkCellsAsOccupied(gridPosition, currentBuildingData.gridSize, true);
+        }
 
         Debug.Log($"Здание '{building.name}' зарегистрировано в {gridPosition}");
     }
 
+    // ИСПРАВЛЕННЫЙ МЕТОД: Теперь правильно проверяет строительство поверх зданий
     public bool CanPlaceBuildingAtGrid(Vector2Int gridPosition, Vector2Int buildingSize)
     {
         if (!IsWithinGrid(gridPosition))
@@ -375,6 +415,9 @@ public class GridManager : MonoBehaviour
             Debug.Log($"Позиция вне сетки: {gridPosition}");
             return false;
         }
+
+        // Список для сбора информации о препятствиях
+        List<string> obstructionInfo = new List<string>();
 
         // Проверяем все ячейки, которые займет здание
         for (int x = 0; x < buildingSize.x; x++)
@@ -389,24 +432,58 @@ public class GridManager : MonoBehaviour
                     return false;
                 }
 
+                // Проверяем занята ли ячейка в сетке
                 if (occupiedCells[checkPos.x, checkPos.y])
                 {
-                    // ПРОВЕРЯЕМ ЧТО НА ЭТОЙ ЯЧЕЙКЕ
                     Vector3 worldPos = GridToWorldPosition(checkPos);
 
-                    // Ищем объекты на этой позиции
+                    // Проверяем коллизии с объектами для более точной информации
                     Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, 0.1f);
+
+                    bool foundSpecificObject = false;
 
                     foreach (var collider in colliders)
                     {
-                        // Если это главное здание - запрещаем строительство
+                        // Проверяем главное здание
                         if (collider.GetComponent<MainBuilding>() != null)
                         {
-                            Debug.Log($"Нельзя строить на главном здании: {checkPos}");
-                            return false;
+                            obstructionInfo.Add("главное здание");
+                            foundSpecificObject = true;
+                            break;
+                        }
+
+                        // Проверяем обычные здания
+                        Building building = collider.GetComponent<Building>();
+                        if (building != null && building.IsBuilt())
+                        {
+                            string buildingName = building.GetBuildingData()?.buildingName ?? "неизвестное здание";
+                            obstructionInfo.Add($"здание '{buildingName}'");
+                            foundSpecificObject = true;
+                            break;
+                        }
+
+                        // Проверяем ресурсы
+                        ResourceSource resource = collider.GetComponent<ResourceSource>();
+                        if (resource != null)
+                        {
+                            obstructionInfo.Add($"ресурс '{resource.gameObject.name}'");
+                            foundSpecificObject = true;
+                            break;
                         }
                     }
 
+                    if (foundSpecificObject)
+                    {
+                        // Показываем информацию о всех препятствиях
+                        if (obstructionInfo.Count > 0)
+                        {
+                            string obstructions = string.Join(", ", obstructionInfo);
+                            Debug.Log($"Нельзя строить здесь: {checkPos}. Препятствия: {obstructions}");
+                        }
+                        return false;
+                    }
+
+                    // Если ячейка просто занята в сетке (например, тайл коллизии)
                     Debug.Log($"Ячейка занята: {checkPos}");
                     return false;
                 }
@@ -414,6 +491,45 @@ public class GridManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    // Дополнительный метод для проверки зоны строительства
+    public List<GameObject> GetObstructionsInArea(Vector2Int gridPosition, Vector2Int buildingSize)
+    {
+        List<GameObject> obstructions = new List<GameObject>();
+
+        if (!IsWithinGrid(gridPosition)) return obstructions;
+
+        for (int x = 0; x < buildingSize.x; x++)
+        {
+            for (int y = 0; y < buildingSize.y; y++)
+            {
+                Vector2Int checkPos = new(gridPosition.x + x, gridPosition.y + y);
+
+                if (IsWithinGrid(checkPos) && occupiedCells[checkPos.x, checkPos.y])
+                {
+                    Vector3 worldPos = GridToWorldPosition(checkPos);
+                    Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, 0.2f);
+
+                    foreach (var collider in colliders)
+                    {
+                        GameObject obj = collider.gameObject;
+
+                        if (obj.GetComponent<MainBuilding>() != null ||
+                            obj.GetComponent<Building>() != null ||
+                            obj.GetComponent<ResourceSource>() != null)
+                        {
+                            if (!obstructions.Contains(obj))
+                            {
+                                obstructions.Add(obj);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return obstructions;
     }
 
     #endregion
@@ -474,6 +590,24 @@ public class GridManager : MonoBehaviour
 
         // Меняем цвет в зависимости от доступности
         bool canPlace = CanPlaceBuildingAtGrid(gridPos, currentBuildingData.gridSize);
+
+        // Дополнительная проверка для лучшей обратной связи
+        if (canPlace)
+        {
+            // Проверяем есть ли препятствия в зоне строительства
+            var obstructions = GetObstructionsInArea(gridPos, currentBuildingData.gridSize);
+            if (obstructions.Count > 0)
+            {
+                canPlace = false;
+                // Можно показать более детальное сообщение о препятствиях
+                foreach (var obj in obstructions)
+                {
+                    string objType = GetObjectType(obj);
+                    Debug.Log($"На пути строительства: {objType} '{obj.name}'");
+                }
+            }
+        }
+
         SetPreviewColor(canPlace ? currentBuildingData.previewColor : invalidColor);
 
         // Обновляем визуализацию сетки только если ячейка изменилась
@@ -483,6 +617,15 @@ public class GridManager : MonoBehaviour
             UpdateGridVisualization(gridPos, canPlace);
             lastHoveredCell = new Vector3Int(gridPos.x, gridPos.y, 0);
         }
+    }
+
+    private string GetObjectType(GameObject obj)
+    {
+        if (obj.GetComponent<MainBuilding>() != null) return "Главное здание";
+        if (obj.GetComponent<Building>() != null) return "Здание";
+        if (obj.GetComponent<ResourceSource>() != null) return "Ресурс";
+        if (obj.GetComponent<ColonistWorker>() != null) return "Колонист";
+        return "Объект";
     }
 
     private Vector3 GetMouseWorldPosition()

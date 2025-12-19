@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1946019765523280120}
   - component: {fileID: 1988591232401270827}
   - component: {fileID: 871790815273543915}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ColonistWorker_Prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -208,7 +208,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8796800359360739400}
   - component: {fileID: 5246505907970842063}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
